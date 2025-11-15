@@ -10,6 +10,9 @@ class Dish(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
     image_path = db.Column(db.String(256), nullable=True)  # 菜品图片路径
+    
+    # 菜品类别（主食、蔬菜、蛋肉类、奶制品）
+    category = db.Column(db.String(32), nullable=True)  # 'staple', 'vegetable', 'protein', 'dairy'
 
     # 一个菜品，可能对应多个 Serving（日投放记录）
     servings = db.relationship("Serving", backref="dish", lazy=True)
@@ -18,7 +21,8 @@ class Dish(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "image_path": self.image_path
+            "image_path": self.image_path,
+            "category": self.category
         }
 
 
