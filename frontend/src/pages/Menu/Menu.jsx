@@ -57,7 +57,7 @@ const Menu = () => {
             />
             <p className="menu-card-name">Dish {dish.name}</p>
             <p className="menu-card-waste">
-              Waste rate: {(dish.waste_rate * 100).toFixed(1)}%
+              {(dish.waste_rate * 100).toFixed(1)}%
             </p>
           </div>
         ))}
