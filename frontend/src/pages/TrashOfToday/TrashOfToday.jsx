@@ -54,7 +54,7 @@ const TrashOfToday = () => {
   }
 
   const dish = data.top_dish;
-  const imageSrc = `${API_URL}${dish.image_path}`;
+  const imageSrc = `${dish.image_path}`;
 
   return (
     <div className="trash-today">
@@ -62,26 +62,6 @@ const TrashOfToday = () => {
 
       <div className="dishContainer">
         <div className="trash-today-scene">
-          <div className="trash-today-dish-card">
-            <div className="trash-today-dish-image-wrap">
-              <img
-                src={imageSrc}
-                alt={dish.dish_name}
-                className="trash-today-dish-image"
-              />
-            </div>
-            <div className="trash-today-dish-info">
-              <span className="trash-today-dish-name">{dish.dish_name}</span>
-              <span className="trash-today-dish-meta">
-                {dish.quantity} servings on {data.date}
-              </span>
-            </div>
-          </div>
-
-          <div className="trash-today-bin">
-            <img src={trashcan} alt={dish.dish_name} />
-          </div>
-
           <div className="trash-today-floating">
             <img
               src={imageSrc}
@@ -90,10 +70,11 @@ const TrashOfToday = () => {
             />
           </div>
         </div>
-
-        <p className="trash-today-caption">
-          Based on the most served dish today.
-        </p>
+      </div>
+      <div>
+        <div className="trash-today-bin">
+          <img src={trashcan} alt={dish.dish_name} />
+        </div>
       </div>
     </div>
   );
