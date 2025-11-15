@@ -1,12 +1,17 @@
 .menu {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 .menu-title {
+  font-size: 36px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fbfada;
   text-align: center;
-  margin-top: 60px;
-  margin-bottom: 40px;
-  font-size: 40px;
 }
 
 .menu-content {
@@ -38,4 +43,11 @@
   object-fit: cover;
   border-radius: 18px;
   margin-bottom: 16px;
+}
+
+.menu-card-waste {
+  font-size: 48px;
+  font-family: "Sansita Swashed", system-ui, sans-serif;
+  font-weight: 800;
+  color: #e4b663;
 }

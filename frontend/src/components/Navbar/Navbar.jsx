@@ -29,6 +29,11 @@ const Navbar = () => {
             Admin
           </NavLink>
         </li>
+        <li>
+          <NavLink to="/metrics" className="nav-header">
+            Metrics
+          </NavLink>
+        </li>
       </ul>
     </nav>
   );
