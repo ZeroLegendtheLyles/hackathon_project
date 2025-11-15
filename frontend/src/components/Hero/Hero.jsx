@@ -8,7 +8,7 @@ const Hero = () => {
       <section className="hero-text">
         <h2 className="hero-subtitle">Haverford</h2>
         <h1 className="hero-title">Plate Scope</h1>
-        <p className="hero-intro">Dining Waste</p>
+        <p className="hero-intro">Know Your Dining Waste</p>
       </section>
 
       <section className="hero-image">
