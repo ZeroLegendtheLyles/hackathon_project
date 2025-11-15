@@ -4,11 +4,19 @@ import "./Admin.css";
 
 const API_URL = "http://127.0.0.1:5001";
 
+const CATEGORY_OPTIONS = [
+  { value: "", label: "Select category" },
+  { value: "staple", label: "Staple" },
+  { value: "vegetable", label: "Vegetable" },
+  { value: "protein", label: "Protein" },
+  { value: "dairy", label: "Dairy" },
+];
+
 const Admin = () => {
   const [date, setDate] = useState("");
   const [totalWaste, setTotalWaste] = useState("");
   const [servings, setServings] = useState([
-    { dish_name: "", quantity: "", image_path: "" },
+    { dish_name: "", quantity: "", image_path: "", category: "" },
   ]);
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +28,10 @@ const Admin = () => {
   };
 
   const addServingRow = () => {
-    setServings([...servings, { dish_name: "", quantity: "", image_path: "" }]);
+    setServings([
+      ...servings,
+      { dish_name: "", quantity: "", image_path: "", category: "" },
+    ]);
   };
 
   const removeServingRow = (index) => {
@@ -28,7 +39,7 @@ const Admin = () => {
     setServings(
       updated.length
         ? updated
-        : [{ dish_name: "", quantity: "", image_path: "" }]
+        : [{ dish_name: "", quantity: "", image_path: "", category: "" }]
     );
   };
 
@@ -48,9 +59,15 @@ const Admin = () => {
               dish_name: s.dish_name.trim(),
               quantity: parseFloat(s.quantity),
             };
+
             if (s.image_path && s.image_path.trim() !== "") {
               base.image_path = s.image_path.trim();
             }
+
+            if (s.category && s.category.trim() !== "") {
+              base.category = s.category.trim();
+            }
+
             return base;
           }),
       };
@@ -59,7 +76,9 @@ const Admin = () => {
       setStatus({ type: "success", message: res.data.message });
       setDate("");
       setTotalWaste("");
-      setServings([{ dish_name: "", quantity: "", image_path: "" }]);
+      setServings([
+        { dish_name: "", quantity: "", image_path: "", category: "" },
+      ]);
     } catch (err) {
       const message =
         err.response?.data?.error || "Failed to add day. Check the data.";
@@ -71,7 +90,7 @@ const Admin = () => {
 
   return (
     <div className="admin">
-      <h2 className="admin-title">Admin Panel</h2>
+      <h2 className="admin-title">Daily Input</h2>
 
       <div className="formContainer">
         <form className="admin-form" onSubmit={handleSubmit}>
@@ -102,6 +121,7 @@ const Admin = () => {
             <div className="admin-servings-header">
               <span>Dish name</span>
               <span>Quantity served</span>
+              <span>Category</span>
               <span>Image path</span>
               <span />
             </div>
@@ -127,6 +147,18 @@ const Admin = () => {
                   }
                   required
                 />
+                <select
+                  value={serving.category || ""}
+                  onChange={(e) =>
+                    handleServingChange(index, "category", e.target.value)
+                  }
+                >
+                  {CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   placeholder="/images/pizza.png"

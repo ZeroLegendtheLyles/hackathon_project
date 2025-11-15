@@ -114,6 +114,7 @@
   display: flex;
   flex-direction: column;
 }
+
 @keyframes trash-fly {
   0% {
     transform: translate(-10%, -40%) scale(1);
@@ -151,5 +152,98 @@
   }
   100% {
     transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+/* ───── Breakpoints ───── */
+
+@media (max-width: 1200px) {
+  .trash-today {
+    padding: 60px 80px;
+  }
+
+  .trash-today-bin {
+    width: 480px;
+    height: 700px;
+  }
+
+  .trash-today-floating-img {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .trash-today {
+    padding: 48px 24px;
+    min-height: auto;
+    gap: 24px;
+  }
+
+  .trash-today-title {
+    font-size: 28px;
+    letter-spacing: 0.18em;
+  }
+
+  .trash-today-scene {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    justify-items: center;
+  }
+
+  .trash-today-bin {
+    width: 360px;
+    height: 520px;
+  }
+
+  .trash-today-floating {
+    left: 50%;
+    top: 32%;
+    transform: translate(-50%, -50%);
+  }
+
+  .trash-today-floating-img {
+    width: 200px;
+    height: 200px;
+  }
+
+  .trash-today-placeholder,
+  .trash-today-caption {
+    text-align: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .trash-today {
+    padding: 32px 16px;
+    gap: 20px;
+  }
+
+  .trash-today-title {
+    font-size: 22px;
+    letter-spacing: 0.15em;
+  }
+
+  .trash-today-bin {
+    width: 260px;
+    height: 380px;
+  }
+
+  .trash-today-floating-img {
+    width: 160px;
+    height: 160px;
+    border-radius: 12px;
+  }
+
+  .trash-today-dish-card {
+    padding: 10px 12px;
+  }
+
+  .trash-today-dish-name {
+    font-size: 14px;
+  }
+
+  .trash-today-dish-meta {
+    font-size: 12px;
   }
 }
