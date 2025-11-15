@@ -234,16 +234,19 @@ def add_day():
             {
                 "dish_name": "红烧肉",
                 "quantity": 15.0,
+                "category": "protein",  // 可选字段：'staple', 'vegetable', 'protein', 'dairy'
                 "image_path": "/images/红烧肉.jpg"  // 可选字段
             },
             {
                 "dish_name": "青菜",
                 "quantity": 8.5,
+                "category": "vegetable",
                 "image_path": "/images/青菜.png"
             },
             {
                 "dish_name": "新菜品",
-                "quantity": 12.0
+                "quantity": 12.0,
+                "category": "staple"
                 // 如果不提供 image_path，系统会自动生成
             }
         ]
@@ -292,10 +295,19 @@ def add_day():
             dish_name = serving_data.get("dish_name")
             quantity = serving_data.get("quantity")
             image_path = serving_data.get("image_path")  # 可选字段
+            category = serving_data.get("category")  # 可选字段：类别信息
             
             if not dish_name or quantity is None:
                 db.session.rollback()
                 return jsonify({"error": "Each serving must have 'dish_name' and 'quantity'"}), 400
+            
+            # 验证类别是否有效（如果提供了的话）
+            valid_categories = ['staple', 'vegetable', 'protein', 'dairy']
+            if category and category not in valid_categories:
+                db.session.rollback()
+                return jsonify({
+                    "error": f"Invalid category '{category}'. Valid categories are: {valid_categories}"
+                }), 400
             
             # 查询或创建菜品
             dish = Dish.query.filter_by(name=dish_name).first()
@@ -304,14 +316,16 @@ def add_day():
                 if not image_path:
                     image_path = f"/images/{dish_name}.png"
                 
-                dish = Dish(name=dish_name, image_path=image_path)
+                dish = Dish(name=dish_name, image_path=image_path, category=category)
                 db.session.add(dish)
                 db.session.flush()  # 获取 dish_id
                 new_dishes_names.append(dish_name)
             else:
-                # 如果菜品已存在但提供了新的 image_path，更新它
+                # 如果菜品已存在，更新相关字段（如果提供了新值）
                 if image_path and dish.image_path != image_path:
                     dish.image_path = image_path
+                if category and dish.category != category:
+                    dish.category = category
             
             # 创建投放记录
             serving = Serving(day_id=day.id, dish_id=dish.id, quantity=quantity)
