@@ -463,3 +463,92 @@ Content-Type: application/json
     }
   ]
 }
+
+### 42. 生成浪费率趋势图
+POST {{baseUrl}}/waste_trend_chart
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-10",
+  "end_date": "2025-11-15"
+}
+
+### 43. 测试趋势图错误情况 - 无效日期格式
+POST {{baseUrl}}/waste_trend_chart
+Content-Type: application/json
+
+{
+  "start_date": "2025/11/10",
+  "end_date": "2025-11-15"
+}
+
+### 44. 测试趋势图错误情况 - 开始日期晚于结束日期
+POST {{baseUrl}}/waste_trend_chart
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-20",
+  "end_date": "2025-11-15"
+}
+
+### 42. 分析浪费率变化趋势 - 基本时间段
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-10",
+  "end_date": "2025-11-15"
+}
+
+### 43. 分析浪费率变化趋势 - 较长时间段
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-10",
+  "end_date": "2025-11-20"
+}
+
+### 44. 分析浪费率变化趋势 - 单日数据
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-13",
+  "end_date": "2025-11-13"
+}
+
+### 45. 测试浪费率趋势分析错误情况 - 无效日期格式
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025/11/10",
+  "end_date": "2025-11-15"
+}
+
+### 46. 测试浪费率趋势分析错误情况 - 开始日期晚于结束日期
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-20",
+  "end_date": "2025-11-10"
+}
+
+### 47. 测试浪费率趋势分析错误情况 - 时间段内无数据
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-12-01",
+  "end_date": "2025-12-10"
+}
+
+### 48. 测试浪费率趋势分析错误情况 - 缺少必要字段
+POST {{baseUrl}}/waste_rate_trend
+Content-Type: application/json
+
+{
+  "start_date": "2025-11-10"
+}
