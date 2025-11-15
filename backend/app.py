@@ -1001,6 +1001,102 @@ def optimize_menu():
 
 
 # ==========================================================
+# API: Generate waste rate trend chart for date range
+# ==========================================================
+@app.route("/waste_trend_chart", methods=["POST"])
+def waste_trend_chart():
+    """
+    Generate waste rate trend chart for specified date range
+    
+    Request format (JSON):
+    {
+        "start_date": "2025-11-10",
+        "end_date": "2025-11-15"
+    }
+    
+    Returns a line chart showing daily average waste rates
+    """
+    import matplotlib
+    matplotlib.use('Agg')  # Use non-GUI backend
+    import matplotlib.pyplot as plt
+    import io
+    import base64
+    from matplotlib.dates import DateFormatter
+    import matplotlib.dates as mdates
+    
+    try:
+        data = request.get_json()
+        
+        if not data or "start_date" not in data or "end_date" not in data:
+            return jsonify({"error": "Missing required fields: start_date, end_date"}), 400
+        
+        try:
+            start_date = datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+            end_date = datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+        
+        if start_date > end_date:
+            return jsonify({"error": "start_date must be before or equal to end_date"}), 400
+        
+        # Get days in date range
+        days = Day.query.filter(Day.date >= start_date, Day.date <= end_date).order_by(Day.date).all()
+        
+        if not days:
+            return jsonify({"error": "No data found for the specified date range"}), 404
+        
+        # Calculate daily waste rates
+        dates = []
+        waste_rates = []
+        
+        for day in days:
+            servings = Serving.query.filter_by(day_id=day.id).all()
+            if servings:
+                total_serving = sum(serving.quantity for serving in servings)
+                if total_serving > 0:
+                    daily_waste_rate = day.total_waste / total_serving
+                    dates.append(day.date)
+                    waste_rates.append(daily_waste_rate)
+        
+        # Create chart
+        plt.figure(figsize=(12, 6))
+        plt.plot(dates, waste_rates, marker='o', linewidth=2, markersize=6)
+        plt.title(f'Waste Rate Trend ({start_date} to {end_date})', fontsize=14, fontweight='bold')
+        plt.xlabel('Date', fontsize=12)
+        plt.ylabel('Waste Rate', fontsize=12)
+        plt.grid(True, alpha=0.3)
+        
+        # Format x-axis
+        plt.gca().xaxis.set_major_formatter(DateFormatter('%m-%d'))
+        plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=1))
+        plt.xticks(rotation=45)
+        
+        # Adjust layout and save to base64
+        plt.tight_layout()
+        
+        # Save plot to base64 string
+        img_buffer = io.BytesIO()
+        plt.savefig(img_buffer, format='png', dpi=150, bbox_inches='tight')
+        img_buffer.seek(0)
+        img_base64 = base64.b64encode(img_buffer.read()).decode('utf-8')
+        plt.close()
+        
+        return jsonify({
+            "success": True,
+            "chart_data": {
+                "image_base64": img_base64,
+                "dates": [d.isoformat() for d in dates],
+                "waste_rates": [round(rate, 4) for rate in waste_rates],
+                "date_range": f"{start_date} to {end_date}",
+                "total_days": len(dates)
+            }
+        })
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to generate chart: {str(e)}"}), 500
+
+
+# ==========================================================
 # Main program entry
 # ==========================================================
 if __name__ == "__main__":
