@@ -3,7 +3,7 @@ import axios from "axios";
 import "./TrashOfToday.css";
 import trashcan from "../../assets/trashcan.png";
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = "http://127.0.0.1:5001";
 
 function getTodayYMD() {
   const d = new Date();
@@ -71,7 +71,7 @@ const TrashOfToday = () => {
           </div>
         </div>
       </div>
-      <div>
+      <div className="">
         <div className="trash-today-bin">
           <img src={trashcan} alt={dish.dish_name} />
         </div>

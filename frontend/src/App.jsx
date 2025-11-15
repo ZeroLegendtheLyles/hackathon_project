@@ -7,6 +7,7 @@ import About from "./pages/About/About";
 import Metrics from "./pages/Metrics/Metrics";
 import Admin from "./pages/Admin/Admin";
 import TrashOfToday from "./pages/TrashOfToday/TrashOfToday";
+import OptimizeMenu from "./pages/OptimizeMenu/OptimizeMenu";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/metrics" element={<Metrics />} />
         <Route path="/trash" element={<TrashOfToday />} />
+        <Route path="/optimize-menu" element={<OptimizeMenu />} />
       </Routes>
     </>
   );

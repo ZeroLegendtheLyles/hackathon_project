@@ -39,6 +39,11 @@ const Navbar = () => {
             Trash of today
           </NavLink>
         </li>
+        <li>
+          <NavLink to="/optimize-menu" className="nav-header">
+            Menu Optimizer
+          </NavLink>
+        </li>
       </ul>
     </nav>
   );
