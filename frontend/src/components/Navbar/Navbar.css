@@ -1,17 +1,29 @@
 .navbar {
   background-color: rgb(45, 54, 46);
-  margin-top: 10px;
-  display: inline-flex;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  width: 100%;
 }
 
-.nav-header {
-  color: white;
-  font-weight: bold;
+.navbar-logo img {
+  height: 40px;
+  width: 40px;
+  object-fit: cover;
 }
 
 .nav-links {
   list-style-type: none;
   display: flex;
   gap: 40px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-header {
+  color: white;
+  font-weight: bold;
   font-size: 16px;
+  text-decoration: none;
 }
