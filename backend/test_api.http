@@ -1,0 +1,84 @@
+### REST Client 接口测试文件
+### 使用方法：点击每个请求上方的 "Send Request" 链接即可执行
+
+@baseUrl = http://127.0.0.1:5000
+
+### 1. 健康检查
+GET {{baseUrl}}/
+
+### 2. 计算浪费率
+GET {{baseUrl}}/compute_waste_rates
+
+### 3. 查询所有日期的菜品提供和浪费情况
+GET {{baseUrl}}/days_overview
+
+### 4. 查询特定日期的菜品提供情况
+GET {{baseUrl}}/day/2025-11-16
+
+### 5. 添加新一天的数据（自动识别新菜品）
+POST {{baseUrl}}/add_day
+Content-Type: application/json
+
+{
+  "date": "2025-11-15",
+  "total_waste": 3.5,
+  "servings": [
+    {
+      "dish_name": "红烧肉",
+      "quantity": 15.0
+    },
+    {
+      "dish_name": "青菜",
+      "quantity": 8.5
+    },
+    {
+      "dish_name": "新菜品",
+      "quantity": 12.0
+    }
+  ]
+}
+
+### 6. 添加另一天的数据（仅用已存在菜品）
+POST {{baseUrl}}/add_day
+Content-Type: application/json
+
+{
+  "date": "2025-11-20",
+  "total_waste": 5.0,
+  "servings": [
+    {
+      "dish_name": "胡萝卜",
+      "quantity": 14.0
+    },
+    {
+      "dish_name": "青菜",
+      "quantity": 20.0
+    }
+  ]
+}
+
+### 7. 测试错误情况 - 缺少必要字段
+POST {{baseUrl}}/add_day
+Content-Type: application/json
+
+{
+  "date": "2025-11-17"
+}
+
+### 8. 测试错误情况 - 无效日期格式
+POST {{baseUrl}}/add_day
+Content-Type: application/json
+
+{
+  "date": "2025/11/17",
+  "total_waste": 2.5,
+  "servings": [
+    {
+      "dish_name": "测试菜品",
+      "quantity": 10.0
+    }
+  ]
+}
+
+### 9. 测试错误情况 - 查询不存在的日期
+GET {{baseUrl}}/day/2025-12-31
