@@ -15,7 +15,7 @@ GET {{baseUrl}}/days_overview
 ### 4. 查询特定日期的菜品提供情况
 GET {{baseUrl}}/day/2025-11-15
 
-### 5. 添加新一天的数据（自动识别新菜品）
+### 5. 添加新一天的数据（带图片路径）
 POST {{baseUrl}}/add_day
 Content-Type: application/json
 
@@ -25,11 +25,13 @@ Content-Type: application/json
   "servings": [
     {
       "dish_name": "1",
-      "quantity": 2.10
+      "quantity": 2.10,
+      "image_path": "/images/dish1.jpg"
     },
     {
       "dish_name": "3",
-      "quantity": 1.31
+      "quantity": 1.31,
+      "image_path": "/images/dish3.png"
     },
     {
       "dish_name": "5",
@@ -38,7 +40,7 @@ Content-Type: application/json
   ]
 }
 
-### 6. 添加另一天的数据（仅用已存在菜品）
+### 6. 添加另一天的数据（部分带图片路径）
 POST {{baseUrl}}/add_day
 Content-Type: application/json
 
@@ -48,11 +50,13 @@ Content-Type: application/json
   "servings": [
     {
       "dish_name": "1",
-      "quantity": 4.89
+      "quantity": 4.89,
+      "image_path": "/images/菜品1_高清.jpg"
     },
     {
       "dish_name": "2",
-      "quantity": 3.74
+      "quantity": 3.74,
+      "image_path": "/images/菜品2.webp"
     },
     {
       "dish_name": "3",

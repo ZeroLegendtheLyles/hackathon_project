@@ -91,10 +91,13 @@ def get_waste_rates():
 
     result = []
     for dish, w in zip(dishes, W):
+        # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+        image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
         result.append({
             "dish_id": dish.id,
             "dish_name": dish.name,
-            "waste_rate": float(w)
+            "waste_rate": float(w),
+            "image_path": image_path
         })
 
     return jsonify(result)
@@ -133,10 +136,13 @@ def days_overview():
         servings_list = []
         for s in servings:
             dish = Dish.query.get(s.dish_id)
+            # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+            image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
             servings_list.append({
                 "dish_id": s.dish_id,
                 "dish_name": dish.name,
-                "quantity": s.quantity
+                "quantity": s.quantity,
+                "image_path": image_path
             })
 
         result.append({
@@ -221,15 +227,18 @@ def add_day():
         "servings": [
             {
                 "dish_name": "红烧肉",
-                "quantity": 15.0
+                "quantity": 15.0,
+                "image_path": "/images/红烧肉.jpg"  // 可选字段
             },
             {
                 "dish_name": "青菜",
-                "quantity": 8.5
+                "quantity": 8.5,
+                "image_path": "/images/青菜.png"
             },
             {
                 "dish_name": "新菜品",
                 "quantity": 12.0
+                // 如果不提供 image_path，系统会自动生成
             }
         ]
     }
@@ -276,6 +285,7 @@ def add_day():
         for serving_data in data["servings"]:
             dish_name = serving_data.get("dish_name")
             quantity = serving_data.get("quantity")
+            image_path = serving_data.get("image_path")  # 可选字段
             
             if not dish_name or quantity is None:
                 db.session.rollback()
@@ -284,10 +294,18 @@ def add_day():
             # 查询或创建菜品
             dish = Dish.query.filter_by(name=dish_name).first()
             if not dish:
-                dish = Dish(name=dish_name)
+                # 如果没有提供 image_path，生成默认路径
+                if not image_path:
+                    image_path = f"/images/{dish_name}.png"
+                
+                dish = Dish(name=dish_name, image_path=image_path)
                 db.session.add(dish)
                 db.session.flush()  # 获取 dish_id
                 new_dishes_names.append(dish_name)
+            else:
+                # 如果菜品已存在但提供了新的 image_path，更新它
+                if image_path and dish.image_path != image_path:
+                    dish.image_path = image_path
             
             # 创建投放记录
             serving = Serving(day_id=day.id, dish_id=dish.id, quantity=quantity)
@@ -374,9 +392,8 @@ def get_dishes_waste_rates():
         dishes_data = []
         for dish in dishes:
             waste_rate = waste_rates_dict.get(dish.name, 0.0)  # 如果没有计算出浪费率，默认为0
-            # 生成图片路径：优先使用菜品名称，如果不存在则使用默认图片
-            image_filename = f"{dish.name}.png"  # 可以根据需要调整扩展名
-            image_path = f"/images/{image_filename}"
+            # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+            image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
             
             dishes_data.append({
                 "id": dish.id,
@@ -634,9 +651,8 @@ def get_top_dish_by_date(date_str):
         total_dishes = len(servings)
         total_serving = sum(serving.quantity for serving in servings)
         
-        # 生成图片路径
-        image_filename = f"{top_dish.name}.png"
-        image_path = f"/images/{image_filename}"
+        # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+        image_path = top_dish.image_path if top_dish.image_path else f"/images/{top_dish.name}.png"
         
         result = {
             "date": day.date.isoformat(),

@@ -9,6 +9,7 @@ class Dish(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
+    image_path = db.Column(db.String(256), nullable=True)  # 菜品图片路径
 
     # 一个菜品，可能对应多个 Serving（日投放记录）
     servings = db.relationship("Serving", backref="dish", lazy=True)
@@ -16,7 +17,8 @@ class Dish(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "name": self.name
+            "name": self.name,
+            "image_path": self.image_path
         }
 
 
