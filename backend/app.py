@@ -240,9 +240,12 @@ def add_day():
     }
     """
     data = request.get_json()
+    print(f"DEBUG: Received data: {data}")
+    print(f"DEBUG: Data type: {type(data)}")
     
     # 验证必要字段
     if not data or "date" not in data or "total_waste" not in data or "servings" not in data:
+        print(f"DEBUG: Missing fields check - data: {data}")
         return jsonify({"error": "Missing required fields: date, total_waste, servings"}), 400
     
     try:
