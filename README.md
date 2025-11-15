@@ -1,7 +1,5 @@
 # ⚡ 🍔 🗑 💻 ⚡ Plate Scope ⚡ 🍔 🗑 💻 ⚡
 
-=======
-
 task 1:
 1.建立数据库存储每天菜品供应情况和浪费情况
 2.功能
@@ -17,9 +15,13 @@ task 1:
 ### Team Members
 
 Jose Andres, Gavilanes, Haverford
+
 Lyles Zhang, Haverford
+
 Deja Zhuo, Haverford
+
 Qiran Zhang, Haverford
+
 Oscar Tang, Haverford
 
 
