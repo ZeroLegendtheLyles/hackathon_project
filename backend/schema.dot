@@ -1,0 +1,20 @@
+// Graphviz DOT file describing the database schema
+digraph schema {
+  graph [rankdir=LR, fontsize=12];
+  node [shape=record, fontname="Helvetica"];
+
+  Day [label="{Day|id: INTEGER\ldate: DATE\l}" ];
+  Dish [label="{Dish|id: INTEGER\lname: STRING\l}" ];
+  DishMeasurement [label="{DishMeasurement|id: INTEGER\lday_id: INTEGER\ldish_id: INTEGER\lamount: FLOAT\l}" ];
+  WasteTotal [label="{WasteTotal|id: INTEGER\lday_id: INTEGER\ltotal_waste: FLOAT\l}" ];
+
+  // Relationships
+  Day -> DishMeasurement [label="1..*", arrowhead=normal];
+  Dish -> DishMeasurement [label="1..*", arrowhead=normal];
+  Day -> WasteTotal [label="1..1", arrowhead=normal];
+
+  // Foreign keys (for clarity)
+  DishMeasurement -> Day [style=dashed, label="FK day_id -> days.id"];
+  DishMeasurement -> Dish [style=dashed, label="FK dish_id -> dishes.id"];
+  WasteTotal -> Day [style=dashed, label="FK day_id -> days.id, unique"];
+}
