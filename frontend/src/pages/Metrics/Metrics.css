@@ -168,18 +168,19 @@
 
 .metrics-submit {
   align-self: flex-start;
-  margin-top: 4px;
+  margin-top: 8px;
   border-radius: 999px;
   border: none;
-  padding: 8px 20px;
-  font-size: 13px;
-  letter-spacing: 0.18em;
+  padding: 10px 28px;
+  font-size: 14px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
   background: linear-gradient(135deg, #ffd166, #ffd166);
   color: #111a19;
   font-weight: 700;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
 .metrics-status {
