@@ -1,0 +1,260 @@
+.metrics {
+  background-color: #111a19;
+  min-height: 100vh;
+  padding: 80px 160px;
+  color: #fbfada;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.metrics-title {
+  font-size: 36px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1.4fr;
+  gap: 24px;
+}
+
+.metrics-grid--two {
+  margin-top: 16px;
+}
+
+.metrics-card {
+  background: radial-gradient(
+    circle at top left,
+    #1d2a27 100%,
+    #0d1413 100%,
+    #0a1110 100%
+  );
+  border-radius: 24px;
+  padding: 62px 26px;
+  border: 1px solid rgba(251, 250, 218, 0.08);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.metrics-card-title {
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(251, 250, 218, 0.8);
+}
+
+.metrics-overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 32px;
+}
+
+.metrics-overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metrics-overview-label {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(251, 250, 218, 0.6);
+}
+
+.metrics-overview-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.metrics-placeholder {
+  font-size: 14px;
+  color: rgba(251, 250, 218, 0.7);
+}
+
+.metrics-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metrics-list-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metrics-list-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metrics-list-name {
+  font-size: 16px;
+}
+
+.metrics-list-rate {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.metrics-list-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background-color: #fbfada;
+  overflow: hidden;
+}
+
+.metrics-list-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffd166, #ffd166);
+  width: 0;
+  transition: width 0.8s ease-out;
+}
+
+.metrics-list-bar-fill--animate {
+  width: var(--bar-width);
+}
+
+.metrics-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metrics-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metrics-field label {
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(251, 250, 218, 0.7);
+}
+
+.metrics-field select,
+.metrics-field input[type="date"] {
+  background-color: #0c1413;
+  border-radius: 999px;
+  border: 1px solid rgba(251, 250, 218, 0.18);
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #fbfada;
+  outline: none;
+}
+
+.metrics-field input[type="range"] {
+  width: 100%;
+}
+
+.metrics-range-label {
+  font-size: 13px;
+  color: rgba(251, 250, 218, 0.8);
+}
+
+.metrics-submit {
+  align-self: flex-start;
+  margin-top: 4px;
+  border-radius: 999px;
+  border: none;
+  padding: 8px 20px;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffd166, #ffd166);
+  color: #111a19;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.metrics-status {
+  margin-top: 10px;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.metrics-status--error {
+  background-color: rgba(237, 80, 80, 0.12);
+  color: #ffc0c0;
+  border: 1px solid rgba(237, 80, 80, 0.55);
+}
+
+.metrics-impact {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.metrics-impact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metrics-top-dish-card {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background-color: rgba(5, 10, 9, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metrics-top-dish-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: rgba(251, 250, 218, 0.7);
+}
+
+.metrics-top-dish-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.metrics-top-dish-qty {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+.metrics-top-dish-meta {
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.8;
+}
+
+.metrics-top-dish-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1024px) {
+  .metrics {
+    padding: 40px 20px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
