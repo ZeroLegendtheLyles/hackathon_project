@@ -8,6 +8,7 @@ import Metrics from "./pages/Metrics/Metrics";
 import Admin from "./pages/Admin/Admin";
 import TrashOfToday from "./pages/TrashOfToday/TrashOfToday";
 import OptimizeMenu from "./pages/OptimizeMenu/OptimizeMenu";
+import WasteTrend from "./pages/WasteTrend/WasteTrend";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/metrics" element={<Metrics />} />
         <Route path="/trash" element={<TrashOfToday />} />
         <Route path="/optimize-menu" element={<OptimizeMenu />} />
+        <Route path="/waste-trend" element={<WasteTrend />} />
       </Routes>
     </>
   );

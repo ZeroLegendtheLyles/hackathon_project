@@ -155,6 +155,19 @@ const Navbar = () => {
                 Menu Optimizer
               </NavLink>
             </li>
+            <li>
+              <NavLink
+                to="/waste-trend"
+                onClick={closeMobile}
+                className={({ isActive }) =>
+                  `nav-dropdown-link ${
+                    isActive ? "nav-dropdown-link--active" : ""
+                  }`
+                }
+              >
+                Waste Trend
+              </NavLink>
+            </li>
           </ul>
         </li>
       </ul>
