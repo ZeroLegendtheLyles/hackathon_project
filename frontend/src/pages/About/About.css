@@ -1,61 +1,63 @@
 .about-title {
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 40px;
-    font-size: 40px;
+  font-size: 36px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fbfada;
+  text-align: center;
 }
 
 .about-section1 {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto 40px;
-    font-size: 18px;
-    line-height: 1.6;
-    animation: floatUp 0.8s ease-out forwards;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  font-size: 18px;
+  line-height: 1.6;
+  animation: floatUp 0.8s ease-out forwards;
 }
 
 .about-section2 {
-    padding: 40px;
-    max-width: 800px;
-    margin: 0 auto 40px;
-    font-size: 18px;
-    line-height: 1.6;
-    animation: floatUp 0.8s ease-out forwards;
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto 40px;
+  font-size: 18px;
+  line-height: 1.6;
+  animation: floatUp 0.8s ease-out forwards;
 }
 
 .about-subtitle {
-    align-items: center;
-    font-size: 28px;
-    margin-bottom: 15px;
-    font-weight: bold;
-    text-align: center;
+  align-items: center;
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-align: center;
+  color: #ffd166;
 }
 
 .about-description {
-    margin-bottom: 15px;
-    text-align: center;
-    font-size: 18px;
-    line-height: 1.6;
+  margin-bottom: 15px;
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.6;
 }
 
 .about-point-title {
-    align-items: center;
-    font-size: 22px;
-    font-weight: bold;
-    margin-top: 10px;
-    margin-bottom: 5px;
-    display: flex;
-    text-align: center;
+  align-items: center;
+  font-size: 22px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  display: flex;
+  text-align: center;
 }
 
-/* 定义动画 */
 @keyframes floatUp {
   from {
     opacity: 0;
-    transform: translateY(20px); /* 往下 20px */
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);    /* 回到原位 */
+    transform: translateY(0);
   }
 }
