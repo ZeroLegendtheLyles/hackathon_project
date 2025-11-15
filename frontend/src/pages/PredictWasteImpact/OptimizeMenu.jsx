@@ -32,7 +32,6 @@ const OptimizeMenu = () => {
       setDishes(list);
       setSelectedIds(list.map((d) => d.id));
 
-      // defaults para min/max de cada plato
       const baseConstraints = {};
       list.forEach((d) => {
         baseConstraints[d.id] = { min: 5, max: 30 };
@@ -78,7 +77,6 @@ const OptimizeMenu = () => {
     setLoading(true);
 
     try {
-      // dish_constraints deben tener keys string
       const dishConstraintsPayload = {};
       Object.entries(constraints).forEach(([id, c]) => {
         dishConstraintsPayload[String(id)] = {

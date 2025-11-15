@@ -7,7 +7,7 @@ import About from "./pages/About/About";
 import Metrics from "./pages/Metrics/Metrics";
 import Admin from "./pages/Admin/Admin";
 import TrashOfToday from "./pages/TrashOfToday/TrashOfToday";
-import OptimizeMenu from "./pages/OptimizeMenu/OptimizeMenu";
+import OptimizeMenu from "./pages/PredictWasteImpact/OptimizeMenu";
 
 function App() {
   return (
