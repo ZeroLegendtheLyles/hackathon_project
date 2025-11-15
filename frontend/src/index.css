@@ -1,10 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@400;600;700&display=swap");
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color: #f9f5e9;
-  background-color: rgb(45, 54, 46);
+  color: #fbfada;
+  background-color: #111a19;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -14,6 +16,8 @@
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -28,10 +32,10 @@ body {
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #e4b663;
   text-decoration: inherit;
 }
 
 a:hover {
-  color: #535bf2;
+  color: #ffe8a3;
 }

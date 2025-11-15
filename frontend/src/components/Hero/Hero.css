@@ -1,28 +1,55 @@
 .hero {
-  background-color: rgb(45, 54, 46);
+  background-color: #111a19;
   padding: 10px 20px;
   margin-top: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: end;
   gap: 40px;
+  position: relative;
 }
 
 .hero-text {
-  max-width: 480px;
+  position: absolute;
+  left: 150px;
+  top: 170px;
 }
 
 .hero-title {
-  font-size: 68px;
+  font-size: 144px;
   line-height: 1.05;
   margin: 0 0 16px;
   font-weight: 800;
-  color: #f9f5e9;
+  color: #fbfada;
+  font-family: "Sansita Swashed", system-ui, sans-serif;
 }
 
 .hero-subtitle {
-  font-size: 14px;
+  font-size: 50px;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: #d0ccb6;
+  color: #fbfada;
+  text-align: center;
+  position: relative;
+  top: 40px;
+  font-weight: 700;
+}
+.hero-intro {
+  font-size: 20px;
+  color: #fbfada;
+  text-align: center;
+  position: relative;
+  top: -10px;
+  font-weight: 700;
+}
+
+.hero-image {
+  height: 700px;
+  width: 700px;
+  object-fit: cover;
+}
+.hero-image img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }

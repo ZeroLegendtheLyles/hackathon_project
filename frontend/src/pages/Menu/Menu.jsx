@@ -18,14 +18,12 @@ const cards = [
     img: "",
     title: "Dessert",
   },
-
 ];
 
-
 const Menu = () => {
-  return ( 
+  return (
     <div className="menu">
-      <h1 className="menu-title">MENU</h1>
+      <h2 className="menu-title">Menu</h2>
 
       <section className="menu-content">
         {cards.map((card) => (
@@ -36,7 +34,7 @@ const Menu = () => {
         ))}
       </section>
     </div>
-    );
+  );
 };
 
 export default Menu;
