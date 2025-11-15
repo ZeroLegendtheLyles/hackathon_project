@@ -587,6 +587,76 @@ def predict_waste_impact():
 
 
 # ==========================================================
+# API：获取某一天投放量最多的菜品
+# ==========================================================
+@app.route("/day/<date_str>/top_dish")
+def get_top_dish_by_date(date_str):
+    """
+    获取某一天投放量最多的菜品信息
+    
+    URL: /day/2025-11-15/top_dish
+    
+    返回格式 (JSON):
+    {
+        "date": "2025-11-15",
+        "top_dish": {
+            "dish_id": 1,
+            "dish_name": "红烧肉",
+            "quantity": 25.5,
+            "image_path": "/images/红烧肉.png"
+        },
+        "total_dishes": 5,
+        "total_serving": 68.2
+    }
+    """
+    try:
+        # 验证日期格式
+        try:
+            query_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+        
+        # 查找该日期的数据
+        day = Day.query.filter_by(date=query_date).first()
+        if not day:
+            return jsonify({"error": f"No data found for date {date_str}"}), 404
+        
+        # 获取该天的所有菜品投放数据
+        servings = Serving.query.filter_by(day_id=day.id).all()
+        if not servings:
+            return jsonify({"error": f"No serving data found for date {date_str}"}), 404
+        
+        # 找到投放量最多的菜品
+        max_serving = max(servings, key=lambda x: x.quantity)
+        top_dish = Dish.query.get(max_serving.dish_id)
+        
+        # 计算统计信息
+        total_dishes = len(servings)
+        total_serving = sum(serving.quantity for serving in servings)
+        
+        # 生成图片路径
+        image_filename = f"{top_dish.name}.png"
+        image_path = f"/images/{image_filename}"
+        
+        result = {
+            "date": day.date.isoformat(),
+            "top_dish": {
+                "dish_id": top_dish.id,
+                "dish_name": top_dish.name,
+                "quantity": round(max_serving.quantity, 2),
+                "image_path": image_path
+            },
+            "total_dishes": total_dishes,
+            "total_serving": round(total_serving, 2)
+        }
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to get top dish: {str(e)}"}), 500
+
+
+# ==========================================================
 # 主程序入口
 # ==========================================================
 if __name__ == "__main__":
