@@ -6,55 +6,55 @@ import json
 from flask_cors import CORS
 
 # ==========================================================
-# 初始化 Flask 与 SQLAlchemy
+# Initialize Flask and SQLAlchemy
 # ==========================================================
 app = Flask(__name__)
 CORS(
     app,
     resources={r"/*": {"origins": "http://localhost:5173"}}
 )
-# 确保数据库总是使用 backend 目录下的 hackathon_project_test.db
+# Ensure database always uses hackathon_project_test.db in backend directory
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, "hackathon_project_test.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-# 确保 JSON 响应显示中文而不是 Unicode 转义序列
+# Ensure JSON responses display Chinese characters instead of Unicode escape sequences
 app.config['JSON_AS_ASCII'] = False
 app.json.ensure_ascii = False
 
-# 使用 models.py 中的 db 实例（避免重复创建）
+# Use db instance from models.py (avoid duplicate creation)
 from models import db
 db.init_app(app)
 
 # ==========================================================
-# 导入 models（放在 db 初始化之后）
+# Import models (after db initialization)
 # ==========================================================
 from models import Dish, Day, Serving
 
 
 # ==========================================================
-# 核心计算函数：构建 P, M 并求解 W
+# Core computation function: Build P, M and solve W
 # ==========================================================
 def compute_waste_rates():
     """
-    从数据库构建:
-        P: (n_days × n_dishes) 投放量矩阵
-        M: (n_days × 1) 当天总垃圾量
-    约束最小二乘求解:
+    Build from database:
+        P: (n_days × n_dishes) serving quantity matrix
+        M: (n_days × 1) daily total waste amount
+    Constrained least squares solution:
         P W = M
-        W = 每个菜品的浪费率 (约束: 0 ≤ W_i ≤ 1)
+        W = waste rate for each dish (constraint: 0 ≤ W_i ≤ 1)
     
-    使用numpy的clip函数将浪费率约束到[0,1]区间，确保结果的物理合理性
+    Use numpy's clip function to constrain waste rates to [0,1] interval, ensuring physical reasonableness
     """
     # --------------------------------------------------
-    # 1. 获取菜品列表并固定顺序
+    # 1. Get dish list and fix order
     # --------------------------------------------------
     dishes = Dish.query.order_by(Dish.id).all()
     dish_ids = [d.id for d in dishes]
     n_dishes = len(dishes)
 
     # --------------------------------------------------
-    # 2. 获取所有日期
+    # 2. Get all dates
     # --------------------------------------------------
     days = Day.query.order_by(Day.id).all()
     n_days = len(days)
@@ -64,12 +64,12 @@ def compute_waste_rates():
     M = np.zeros(n_days)
 
     # --------------------------------------------------
-    # 3. 构建矩阵
+    # 3. Build matrices
     # --------------------------------------------------
     for i, day in enumerate(days):
         M[i] = day.total_waste
 
-        # 该日的所有菜单记录
+        # All menu records for this day
         servings = Serving.query.filter_by(day_id=day.id).all()
 
         for s in servings:
@@ -77,19 +77,19 @@ def compute_waste_rates():
             P[i, j] = s.quantity
 
     # --------------------------------------------------
-    # 4. 约束最小二乘求解 W (每个浪费率在0-1之间)
+    # 4. Constrained least squares solution for W (each waste rate between 0-1)
     # --------------------------------------------------
-    # 先进行无约束最小二乘求解
+    # First perform unconstrained least squares solution
     W_unconstrained, _, _, _ = np.linalg.lstsq(P, M, rcond=None)
     
-    # 将结果约束到[0,1]区间内
+    # Constrain results to [0,1] interval
     W = np.clip(W_unconstrained, 0, 1)
 
     return dishes, W
 
 
 # ==========================================================
-# API：返回每个菜品的浪费率
+# API: Return waste rate for each dish
 # ==========================================================
 @app.route("/compute_waste_rates")
 def get_waste_rates():
@@ -97,7 +97,7 @@ def get_waste_rates():
 
     result = []
     for dish, w in zip(dishes, W):
-        # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+        # Prefer stored image path in database, generate default if none
         image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
         result.append({
             "dish_id": dish.id,
@@ -110,13 +110,13 @@ def get_waste_rates():
 
 
 # ==========================================================
-# API：查询每一天的菜品提供情况和浪费情况
+# API: Query daily dish serving and waste status
 # ==========================================================
 @app.route("/days_overview")
 def days_overview():
     """
-    返回所有日期的菜品提供情况和浪费情况
-    格式：
+    Return dish serving and waste status for all dates
+    Format:
     [
         {
             "day_id": 1,
@@ -142,7 +142,7 @@ def days_overview():
         servings_list = []
         for s in servings:
             dish = Dish.query.get(s.dish_id)
-            # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+            #Give priority to using the image paths stored in the database. If not available, generate the default path
             image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
             servings_list.append({
                 "dish_id": s.dish_id,
@@ -162,14 +162,14 @@ def days_overview():
 
 
 # ==========================================================
-# API：查询特定一天的菜品提供情况
+# API: Query specific day's dish serving status
 # ==========================================================
 @app.route("/day/<date_str>")
 def day_detail(date_str):
     """
-    查询特定日期的菜品提供情况
+    Query dish serving status for specific date
     URL: /day/2025-11-14
-    返回格式：
+    Return format:
     {
         "day_id": 1,
         "date": "2025-11-14",
@@ -220,13 +220,13 @@ def index():
 
 
 # ==========================================================
-# API：添加新一天的数据（自动识别新菜品）
+# API: Add new day's data (auto-recognize new dishes)
 # ==========================================================
 @app.route("/add_day", methods=["POST"])
 def add_day():
     """
-    添加新一天的菜品投放情况和浪费总量
-    请求格式 (JSON):
+    Add new day's dish serving status and total waste amount
+    Request format (JSON):
     {
         "date": "2025-11-15",
         "total_waste": 3.5,
@@ -234,22 +234,25 @@ def add_day():
             {
                 "dish_name": "红烧肉",
                 "quantity": 15.0,
-                "image_path": "/images/红烧肉.jpg"  // 可选字段
+                "category": "protein",  // Optional field: 'staple', 'vegetable', 'protein', 'dairy'
+                "image_path": "/images/红烧肉.jpg"  // Optional field
             },
             {
                 "dish_name": "青菜",
                 "quantity": 8.5,
+                "category": "vegetable",
                 "image_path": "/images/青菜.png"
             },
             {
                 "dish_name": "新菜品",
-                "quantity": 12.0
-                // 如果不提供 image_path，系统会自动生成
+                "quantity": 12.0,
+                "category": "staple"
+                // If image_path not provided, system will auto-generate
             }
         ]
     }
     
-    返回格式：
+    Return format:
     {
         "success": true,
         "message": "Day added successfully",
@@ -273,52 +276,63 @@ def add_day():
     except ValueError:
         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
     
-    # 检查该日期是否已存在
+    # Check if this date already exists
     existing_day = Day.query.filter_by(date=query_date).first()
     if existing_day:
         return jsonify({"error": f"Data for date {data['date']} already exists"}), 409
     
     try:
-        # 创建新的 Day 记录
+        # Create new Day record
         day = Day(date=query_date, total_waste=data["total_waste"])
         db.session.add(day)
-        db.session.flush()  # 获取 day_id，但不提交
+        db.session.flush()  # Get day_id but don't commit
         
         new_dishes_names = []
         servings_count = 0
         
-        # 处理每个菜品和投放量
+        # Process each dish and serving quantity
         for serving_data in data["servings"]:
             dish_name = serving_data.get("dish_name")
             quantity = serving_data.get("quantity")
-            image_path = serving_data.get("image_path")  # 可选字段
+            image_path = serving_data.get("image_path")  # Optional field
+            category = serving_data.get("category")  # Optional field: category info
             
             if not dish_name or quantity is None:
                 db.session.rollback()
                 return jsonify({"error": "Each serving must have 'dish_name' and 'quantity'"}), 400
             
-            # 查询或创建菜品
+            # Validate category if provided
+            valid_categories = ['staple', 'vegetable', 'protein', 'dairy']
+            if category and category not in valid_categories:
+                db.session.rollback()
+                return jsonify({
+                    "error": f"Invalid category '{category}'. Valid categories are: {valid_categories}"
+                }), 400
+            
+            # Query or create dish
             dish = Dish.query.filter_by(name=dish_name).first()
             if not dish:
-                # 如果没有提供 image_path，生成默认路径
+                # Generate default path if image_path not provided
                 if not image_path:
                     image_path = f"/images/{dish_name}.png"
                 
-                dish = Dish(name=dish_name, image_path=image_path)
+                dish = Dish(name=dish_name, image_path=image_path, category=category)
                 db.session.add(dish)
-                db.session.flush()  # 获取 dish_id
+                db.session.flush()  # Get dish_id
                 new_dishes_names.append(dish_name)
             else:
-                # 如果菜品已存在但提供了新的 image_path，更新它
+                # If dish exists, update related fields (if new values provided)
                 if image_path and dish.image_path != image_path:
                     dish.image_path = image_path
+                if category and dish.category != category:
+                    dish.category = category
             
-            # 创建投放记录
+            # Create serving record
             serving = Serving(day_id=day.id, dish_id=dish.id, quantity=quantity)
             db.session.add(serving)
             servings_count += 1
         
-        # 提交所有更改
+        # Commit all changes
         db.session.commit()
         
         return jsonify({
@@ -336,18 +350,18 @@ def add_day():
 
 
 # ==========================================================
-# API：获取所有食物的编号名称和浪费率
+# API: Get dish ID, name and waste rate for all foods
 # ==========================================================
 @app.route("/dishes_waste_rates")
 def get_dishes_waste_rates():
     """
-    获取所有食物的编号名称和浪费率，支持排序
+    Get dish ID, name and waste rate for all foods, supports sorting
     
-    查询参数:
-        sort: 排序方式，'asc'（升序）或 'desc'（降序），默认为 'asc'
-        order_by: 排序字段，'waste_rate'（按浪费率）或 'name'（按名称），默认为 'waste_rate'
+    Query parameters:
+        sort: Sort order, 'asc' (ascending) or 'desc' (descending), default is 'asc'
+        order_by: Sort field, 'waste_rate' (by waste rate) or 'name' (by name), default is 'waste_rate'
     
-    返回格式 (JSON):
+    Return format (JSON):
     {
         "dishes": [
             {
@@ -369,46 +383,46 @@ def get_dishes_waste_rates():
     }
     """
     try:
-        # 获取查询参数
+        # Get query parameters
         sort_order = request.args.get('sort', 'asc').lower()
         order_by = request.args.get('order_by', 'waste_rate').lower()
         
-        # 验证参数
+        # Validate parameters
         if sort_order not in ['asc', 'desc']:
             return jsonify({"error": "Invalid sort parameter. Use 'asc' or 'desc'"}), 400
         
         if order_by not in ['waste_rate', 'name']:
             return jsonify({"error": "Invalid order_by parameter. Use 'waste_rate' or 'name'"}), 400
         
-        # 先计算浪费率
+        # First calculate waste rates
         try:
             dishes, waste_rates = compute_waste_rates()
             
-            # 构建浪费率字典
+            # Build waste rate dictionary
             waste_rates_dict = {}
             for dish, rate in zip(dishes, waste_rates):
                 waste_rates_dict[dish.name] = rate
         except Exception as e:
             return jsonify({"error": f"Failed to compute waste rates: {str(e)}"}), 500
         
-        # 获取所有菜品
+        # Get all dishes
         dishes = Dish.query.all()
         
-        # 构建结果列表
+        # Build result list
         dishes_data = []
         for dish in dishes:
-            waste_rate = waste_rates_dict.get(dish.name, 0.0)  # 如果没有计算出浪费率，默认为0
-            # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+            waste_rate = waste_rates_dict.get(dish.name, 0.0)  # Default to 0 if no waste rate calculated
+            # Prefer stored image path in database, generate default if none
             image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
             
             dishes_data.append({
                 "id": dish.id,
                 "name": dish.name,
-                "waste_rate": round(waste_rate, 4),  # 保留4位小数
+                "waste_rate": round(waste_rate, 4),  # Keep 4 decimal places
                 "image_path": image_path
             })
         
-        # 排序
+        # Sort
         if order_by == 'waste_rate':
             dishes_data.sort(key=lambda x: x['waste_rate'], reverse=(sort_order == 'desc'))
         else:  # order_by == 'name'
@@ -428,20 +442,20 @@ def get_dishes_waste_rates():
 
 
 # ==========================================================
-# API：预测调整菜品投放量对总浪费的影响
+# API: Predict impact of adjusting dish serving quantity on total waste
 # ==========================================================
 @app.route("/predict_waste_impact", methods=["POST"])
 def predict_waste_impact():
     """
-    预测调整某个菜品投放量后对总浪费量和总浪费率的影响（所有历史数据的平均值）
+    Predict impact on total waste amount and rate after adjusting serving quantity of a dish (average of all historical data)
     
-    请求格式 (JSON):
+    Request format (JSON):
     {
         "dish_name": "红烧肉",
-        "adjustment_percentage": 80  // 调整为原投放量的80%
+        "adjustment_percentage": 80  // Adjust to 80% of original serving quantity
     }
     
-    返回格式 (JSON):
+    Return format (JSON):
     {
         "dish_name": "红烧肉",
         "adjustment_percentage": 80,
@@ -471,23 +485,23 @@ def predict_waste_impact():
     try:
         data = request.get_json()
         
-        # 验证必要字段
+        # Validate required fields
         if not data or "dish_name" not in data or "adjustment_percentage" not in data:
             return jsonify({"error": "Missing required fields: dish_name, adjustment_percentage"}), 400
         
         dish_name = data["dish_name"]
         adjustment_percentage = data["adjustment_percentage"]
         
-        # 验证调整百分比范围
+        # Validate adjustment percentage range
         if not isinstance(adjustment_percentage, (int, float)) or adjustment_percentage < 0 or adjustment_percentage > 200:
             return jsonify({"error": "adjustment_percentage must be between 0 and 200"}), 400
         
-        # 查找菜品
+        # Find dish
         dish = Dish.query.filter_by(name=dish_name).first()
         if not dish:
             return jsonify({"error": f"Dish '{dish_name}' not found"}), 404
         
-        # 获取当前浪费率
+        # Get current waste rate
         try:
             dishes, waste_rates = compute_waste_rates()
             dish_waste_rate = None
@@ -501,10 +515,10 @@ def predict_waste_impact():
         except Exception as e:
             return jsonify({"error": f"Failed to compute current waste rates: {str(e)}"}), 500
         
-        # 获取所有历史日期
+        # Get all historical dates
         days = Day.query.order_by(Day.date).all()
         
-        # 统计变量
+        # Statistical variables
         total_original_dish_serving = 0
         total_original_waste = 0
         total_original_serving = 0
@@ -515,12 +529,12 @@ def predict_waste_impact():
         
         adjustment_factor = adjustment_percentage / 100.0
         
-        # 对每一天进行计算并累加
+        # Calculate for each day and accumulate
         for day in days:
-            # 获取该天的菜品投放情况
+            # Get dish serving status for this day
             servings = Serving.query.filter_by(day_id=day.id).all()
             
-            # 找到目标菜品的投放量
+            # Find target dish serving quantity
             target_serving = None
             day_total_serving = 0
             for serving in servings:
@@ -528,13 +542,13 @@ def predict_waste_impact():
                 if serving.dish_id == dish.id:
                     target_serving = serving
             
-            # 如果该天没有投放目标菜品，跳过
+            # Skip if target dish was not served on this day
             if not target_serving:
                 continue
             
             valid_days += 1
             
-            # 累加原始数据
+            # Accumulate original data
             original_dish_serving = target_serving.quantity
             original_total_waste = day.total_waste
             original_total_serving = day_total_serving
@@ -543,10 +557,10 @@ def predict_waste_impact():
             total_original_waste += original_total_waste
             total_original_serving += original_total_serving
             
-            # 计算调整后的数据并累加
+            # Calculate adjusted data and accumulate
             predicted_dish_serving = original_dish_serving * adjustment_factor
             
-            # 预测浪费变化：原投放量产生的浪费 - 新投放量产生的浪费
+            # Predict waste change: original serving waste - new serving waste
             original_dish_waste = original_dish_serving * dish_waste_rate
             predicted_dish_waste = predicted_dish_serving * dish_waste_rate
             waste_change = predicted_dish_waste - original_dish_waste
@@ -561,7 +575,7 @@ def predict_waste_impact():
         if valid_days == 0:
             return jsonify({"error": f"No serving data found for dish '{dish_name}' in any historical records"}), 404
         
-        # 计算平均值
+        # Calculate averages
         avg_original_dish_serving = total_original_dish_serving / valid_days
         avg_original_waste = total_original_waste / valid_days
         avg_original_serving = total_original_serving / valid_days
@@ -572,7 +586,7 @@ def predict_waste_impact():
         avg_predicted_serving = total_predicted_serving / valid_days
         avg_predicted_waste_rate = avg_predicted_waste / avg_predicted_serving if avg_predicted_serving > 0 else 0
         
-        # 计算平均变化量
+        # Calculate average change amounts
         avg_waste_reduction = avg_original_waste - avg_predicted_waste
         avg_waste_rate_reduction = avg_original_waste_rate - avg_predicted_waste_rate
         avg_serving_reduction = avg_original_serving - avg_predicted_serving
@@ -610,16 +624,16 @@ def predict_waste_impact():
 
 
 # ==========================================================
-# API：获取某一天投放量最多的菜品
+# API: Get dish with highest serving quantity for a specific day
 # ==========================================================
 @app.route("/day/<date_str>/top_dish")
 def get_top_dish_by_date(date_str):
     """
-    获取某一天投放量最多的菜品信息
+    Get dish with highest serving quantity for a specific day
     
     URL: /day/2025-11-15/top_dish
     
-    返回格式 (JSON):
+    Return format (JSON):
     {
         "date": "2025-11-15",
         "top_dish": {
@@ -633,31 +647,31 @@ def get_top_dish_by_date(date_str):
     }
     """
     try:
-        # 验证日期格式
+        # Validate date format
         try:
             query_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:
             return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
         
-        # 查找该日期的数据
+        # Find data for this date
         day = Day.query.filter_by(date=query_date).first()
         if not day:
             return jsonify({"error": f"No data found for date {date_str}"}), 404
         
-        # 获取该天的所有菜品投放数据
+        # Get all dish serving data for this day
         servings = Serving.query.filter_by(day_id=day.id).all()
         if not servings:
             return jsonify({"error": f"No serving data found for date {date_str}"}), 404
         
-        # 找到投放量最多的菜品
+        # Find dish with highest serving quantity
         max_serving = max(servings, key=lambda x: x.quantity)
         top_dish = Dish.query.get(max_serving.dish_id)
         
-        # 计算统计信息
+        # Calculate statistics
         total_dishes = len(servings)
         total_serving = sum(serving.quantity for serving in servings)
         
-        # 优先使用数据库中存储的图片路径，如果没有则生成默认路径
+        # Prefer stored image path in database, generate default if none
         image_path = top_dish.image_path if top_dish.image_path else f"/images/{top_dish.name}.png"
         
         result = {
@@ -679,41 +693,41 @@ def get_top_dish_by_date(date_str):
 
 
 # ==========================================================
-# API：菜单优化规划
+# API: Menu optimization planning
 # ==========================================================
 @app.route("/optimize_menu", methods=["POST"])
 def optimize_menu():
     """
-    使用线性规划优化每日菜品供应量，目标是最小化浪费率
+    Use linear programming to optimize daily dish serving quantities, objective is to minimize waste rate
     
-    请求格式 (JSON):
+    Request format (JSON):
     {
-        "total_quantity_range": [80, 120],          // 总出餐量范围(kg) - 必选
-        "num_dishes": 3,                            // 从候选菜品中选择的菜品数量 - 必选
-        "dish_constraints": {                       // 候选池中所有菜品的制作量约束 - 必选
-            "1": {"min": 10, "max": 30},           // 菜品1的约束
-            "2": {"min": 15, "max": 25},           // 菜品2的约束
-            "3": {"min": 12, "max": 28},           // 菜品3的约束
-            "4": {"min": 8, "max": 20},            // 菜品4的约束
-            "5": {"min": 18, "max": 35}            // 菜品5的约束
+        "total_quantity_range": [80, 120],          // Total serving quantity range (kg) - required
+        "num_dishes": 3,                            // Number of dishes to select from candidates - required
+        "dish_constraints": {                       // Serving quantity constraints for all dishes in candidate pool - required
+            "1": {"min": 10, "max": 30},           // Dish 1 constraints
+            "2": {"min": 15, "max": 25},           // Dish 2 constraints
+            "3": {"min": 12, "max": 28},           // Dish 3 constraints
+            "4": {"min": 8, "max": 20},            // Dish 4 constraints
+            "5": {"min": 18, "max": 35}            // Dish 5 constraints
         },
-        "category_requirements": {                  // 可选的类别要求
-            "require_staple": true,                 // 是否必须包含主食
-            "require_vegetable": true,              // 是否必须包含蔬菜
-            "require_protein": false,               // 是否必须包含蛋肉类
-            "require_dairy": false                  // 是否必须包含奶制品
+        "category_requirements": {                  // Optional category requirements
+            "require_staple": true,                 // Whether staple food is required
+            "require_vegetable": true,              // Whether vegetable is required
+            "require_protein": false,               // Whether protein is required
+            "require_dairy": false                  // Whether dairy is required
         },
-        "available_dishes": [1, 2, 3, 4, 5]       // 候选菜品ID列表，可选（默认所有菜品）
+        "available_dishes": [1, 2, 3, 4, 5]       // Candidate dish ID list, optional (default all dishes)
     }
     
-    说明：
-    - available_dishes=[1,2,3,4,5] 定义了候选菜品池（5个菜品）
-    - dish_constraints 必须为这5个菜品都定义约束
-    - num_dishes=3 表示从这5个菜品中选择3个
-    - 算法会枚举所有C(5,3)=10种组合，对每个组合用线性规划优化
-    - 最终返回浪费率最低的最优解
+    Description:
+    - available_dishes=[1,2,3,4,5] defines candidate dish pool (5 dishes)
+    - dish_constraints must define constraints for all 5 dishes
+    - num_dishes=3 means select 3 dishes from these 5 dishes
+    - Algorithm enumerates all C(5,3)=10 combinations, optimizes each with linear programming
+    - Finally returns optimal solution with lowest waste rate
     
-    返回格式 (JSON):
+    Return format (JSON):
     {
         "success": true,
         "optimization_result": {
@@ -740,7 +754,7 @@ def optimize_menu():
         
         data = request.get_json()
         
-        # 验证必要字段
+        # Validate required fields
         if not data:
             return jsonify({"error": "Missing request body"}), 400
         
@@ -759,7 +773,7 @@ def optimize_menu():
         category_requirements = data.get("category_requirements", {})
         available_dish_ids = data.get("available_dishes", None)
         
-        # 验证参数合理性
+        # Validate parameter reasonableness
         if total_qty_min >= total_qty_max:
             return jsonify({"error": "Invalid total_quantity_range: min must be less than max"}), 400
         
@@ -769,20 +783,20 @@ def optimize_menu():
         if not dish_constraints:
             return jsonify({"error": "dish_constraints cannot be empty"}), 400
         
-        # 获取浪费率数据
+        # Get waste rate data
         try:
             dishes, waste_rates = compute_waste_rates()
         except Exception as e:
             return jsonify({"error": f"Failed to compute waste rates: {str(e)}"}), 500
         
-        # 构建候选菜品池
+        # Build candidate dish pool
         if available_dish_ids:
-            # 使用指定的菜品ID列表
+            # Use specified dish ID list
             candidate_dishes = []
             candidate_waste_rates = []
             
             for dish_id in available_dish_ids:
-                # 找到对应的菜品对象
+                # Find corresponding dish object
                 dish_obj = None
                 dish_waste_rate = None
                 for i, dish in enumerate(dishes):
@@ -797,11 +811,11 @@ def optimize_menu():
                 candidate_dishes.append(dish_obj)
                 candidate_waste_rates.append(dish_waste_rate)
         else:
-            # 使用所有菜品作为候选
+            # Use all dishes as candidates
             candidate_dishes = dishes
             candidate_waste_rates = waste_rates
         
-        # 验证约束定义：候选菜品池中的每个菜品都必须在dish_constraints中定义
+        # Validate constraint definitions: each dish in candidate pool must be defined in dish_constraints
         missing_constraints = []
         invalid_constraints = []
         
@@ -825,13 +839,13 @@ def optimize_menu():
         if invalid_constraints:
             return jsonify({"error": f"Invalid constraints: {invalid_constraints}"}), 400
         
-        # 检查候选菜品数量是否足够
+        # Check if candidate dish count is sufficient
         if len(candidate_dishes) < num_dishes:
             return jsonify({
                 "error": f"Not enough candidate dishes. Need {num_dishes}, have {len(candidate_dishes)} candidate dishes"
             }), 400
         
-        # 检查类别要求的函数
+        # Function to check category requirements
         def check_category_requirements_func(dishes_list):
             if not category_requirements:
                 return True
@@ -849,35 +863,35 @@ def optimize_menu():
             
             return True
         
-        # 枚举所有可能的菜品组合（从候选菜品中选择）
+        # Enumerate all possible dish combinations (select from candidate dishes)
         best_solution = None
         best_waste_rate = float('inf')
         best_combination = None
         
-        # 尝试所有可能的菜品组合
+        # Try all possible dish combinations
         for dish_combination in combinations(candidate_dishes, num_dishes):
-            # 检查类别要求
+            # Check category requirements
             if not check_category_requirements_func(dish_combination):
                 continue
             
-            # 为当前组合设置线性规划
+            # Set up linear programming for current combination
             n_selected = len(dish_combination)
             selected_waste_rates = []
             
             for dish in dish_combination:
-                # 找到对应的浪费率
+                # Find corresponding waste rate
                 dish_idx = candidate_dishes.index(dish)
                 selected_waste_rates.append(candidate_waste_rates[dish_idx])
             
-            # 线性规划设置
-            # 目标函数：最小化总浪费量
+            # Linear programming setup
+            # Objective function: minimize total waste amount
             c = selected_waste_rates
             
-            # 不等式约束 A_ub * x <= b_ub
+            # Inequality constraints A_ub * x <= b_ub
             A_ub = []
             b_ub = []
             
-            # 每个菜品的最大量约束
+            # Maximum quantity constraint for each dish
             for i, dish in enumerate(dish_combination):
                 dish_id_str = str(dish.id)
                 constraint = dish_constraints[dish_id_str]
@@ -888,23 +902,23 @@ def optimize_menu():
                 A_ub.append(constraint_row)
                 b_ub.append(max_qty)
             
-            # 总量上限约束
+            # Total quantity upper bound constraint
             A_ub.append([1] * n_selected)
             b_ub.append(total_qty_max)
             
-            # 总量下限约束（转换为不等式）
+            # Total quantity lower bound constraint (convert to inequality)
             A_ub.append([-1] * n_selected)
             b_ub.append(-total_qty_min)
             
-            # 变量边界 (下界, 上界)
+            # Variable bounds (lower bound, upper bound)
             bounds = []
             for dish in dish_combination:
                 dish_id_str = str(dish.id)
                 constraint = dish_constraints[dish_id_str]
                 min_qty = constraint["min"]
-                bounds.append((min_qty, None))  # 上界通过不等式约束处理
+                bounds.append((min_qty, None))  # Upper bound handled by inequality constraints
             
-            # 求解线性规划
+            # Solve linear programming
             try:
                 result = linprog(
                     c=c,
@@ -918,14 +932,14 @@ def optimize_menu():
                     quantities = result.x
                     total_quantity = sum(quantities)
                     
-                    # 验证解是否满足所有约束
+                    # Validate if solution satisfies all constraints
                     valid_solution = True
                     
-                    # 检查总量约束
+                    # Check total quantity constraints
                     if total_quantity < total_qty_min or total_quantity > total_qty_max:
                         valid_solution = False
                     
-                    # 检查每个菜品的约束
+                    # Check constraints for each dish
                     for i, dish in enumerate(dish_combination):
                         dish_id_str = str(dish.id)
                         constraint = dish_constraints[dish_id_str]
@@ -949,13 +963,13 @@ def optimize_menu():
                             }
                             
             except Exception as e:
-                # 这个组合无解，继续尝试下一个
+                # This combination has no solution, continue to next one
                 continue
         
         if best_solution is None:
             return jsonify({"error": "No valid solution found. Constraints may be too restrictive."}), 400
         
-        # 构建响应
+        # Build response
         selected_dishes_result = []
         for i, dish in enumerate(best_combination):
             dish_idx = candidate_dishes.index(dish)
@@ -987,7 +1001,7 @@ def optimize_menu():
 
 
 # ==========================================================
-# 主程序入口
+# Main program entry
 # ==========================================================
 if __name__ == "__main__":
     with app.app_context():
