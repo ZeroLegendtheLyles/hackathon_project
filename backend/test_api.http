@@ -13,27 +13,27 @@ GET {{baseUrl}}/compute_waste_rates
 GET {{baseUrl}}/days_overview
 
 ### 4. 查询特定日期的菜品提供情况
-GET {{baseUrl}}/day/2025-11-16
+GET {{baseUrl}}/day/2025-11-15
 
 ### 5. 添加新一天的数据（自动识别新菜品）
 POST {{baseUrl}}/add_day
 Content-Type: application/json
 
 {
-  "date": "2025-11-15",
-  "total_waste": 3.5,
+  "date": "2025-11-22",
+  "total_waste": 2.14,
   "servings": [
     {
-      "dish_name": "红烧肉",
-      "quantity": 15.0
+      "dish_name": "1",
+      "quantity": 2.10
     },
     {
-      "dish_name": "青菜",
-      "quantity": 8.5
+      "dish_name": "3",
+      "quantity": 1.31
     },
     {
-      "dish_name": "新菜品",
-      "quantity": 12.0
+      "dish_name": "5",
+      "quantity": 5.46
     }
   ]
 }
@@ -43,16 +43,20 @@ POST {{baseUrl}}/add_day
 Content-Type: application/json
 
 {
-  "date": "2025-11-20",
-  "total_waste": 5.0,
+  "date": "2025-11-13",
+  "total_waste": 4.75,
   "servings": [
     {
-      "dish_name": "胡萝卜",
-      "quantity": 14.0
+      "dish_name": "1",
+      "quantity": 4.89
     },
     {
-      "dish_name": "青菜",
-      "quantity": 20.0
+      "dish_name": "2",
+      "quantity": 3.74
+    },
+    {
+      "dish_name": "3",
+      "quantity": 5.72
     }
   ]
 }
@@ -82,3 +86,15 @@ Content-Type: application/json
 
 ### 9. 测试错误情况 - 查询不存在的日期
 GET {{baseUrl}}/day/2025-12-31
+
+### 10. 获取所有食物的浪费率（默认按浪费率升序）
+GET {{baseUrl}}/dishes_waste_rates
+
+### 11. 获取所有食物的浪费率（按浪费率降序）
+GET {{baseUrl}}/dishes_waste_rates?sort=desc
+
+### 12. 获取所有食物的浪费率（按名称升序）
+GET {{baseUrl}}/dishes_waste_rates?order_by=name&sort=asc
+
+### 13. 获取所有食物的浪费率（按名称降序）
+GET {{baseUrl}}/dishes_waste_rates?order_by=name&sort=desc

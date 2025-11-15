@@ -1,0 +1,123 @@
+1.@app.route("/compute_waste_rates")
+
+Function: Compute the waste_rate of every dish
+input Format:/
+output Format:
+[
+    {
+        "dish_id": 1,
+        "dish_name": "红烧肉",
+        "waste_rate": 0.2534
+    },
+    {
+        "dish_id": 2,
+        "dish_name": "青菜", 
+        "waste_rate": 0.1876
+    },
+    {
+        "dish_id": 3,
+        "dish_name": "鸡蛋汤",
+        "waste_rate": 0.3021
+    }
+]
+
+2.@app.route("/days_overview")
+
+Function: Check the daily supply and waste of dishes
+input Format:/
+output Format:
+[
+        {
+            "day_id": 1,
+            "date": "2025-11-14",
+            "total_waste": 2.3,
+            "servings": [
+                {
+                    "dish_id": 1,
+                    "dish_name": "示例菜品",
+                    "quantity": 12.5
+                },
+                ...
+            ]
+        },
+        ...
+    ]
+
+3.@app.route("/day/<date_str>")  
+
+Function: Check the availability of dishes on a specific date
+input format: URL: /day/2025-11-14
+output Format:
+{
+        "day_id": 1,
+        "date": "2025-11-14",
+        "total_waste": 2.3,
+        "servings": [
+            {
+                "dish_id": 1,
+                "dish_name": "示例菜品",
+                "quantity": 12.5
+            },
+            ...
+        ]
+    }
+
+4.@app.route("/")
+
+5.@app.route("/add_day", methods=["POST"])
+
+Function:Add data for the new day (automatically identify new dishes)
+input Format:
+{
+        "date": "2025-11-15",
+        "total_waste": 3.5,
+        "servings": [
+            {
+                "dish_name": "红烧肉",
+                "quantity": 15.0
+            },
+            {
+                "dish_name": "青菜",
+                "quantity": 8.5
+            },
+            {
+                "dish_name": "新菜品",
+                "quantity": 12.0
+            }
+        ]
+    }
+output format:
+ {
+        "success": true,
+        "message": "Day added successfully",
+        "day_id": 2,
+        "date": "2025-11-15",
+        "new_dishes": ["新菜品"],
+        "servings_count": 3
+    }
+
+6. @app.route("/dishes_waste_rates")
+
+Function: Get the numbers, names and waste rates of all the food
+input Format:
+GET /dishes_waste_rates?order_by=name&sort=desc
+output Format:
+{
+        "dishes": [
+            {
+                "id": 1,
+                "name": "红烧肉",
+                "waste_rate": 0.25,
+                "image_path": "/images/红烧肉.jpg"
+            },
+            {
+                "id": 2, 
+                "name": "青椒炒蛋",
+                "waste_rate": 0.15,
+                "image_path": "/images/青椒炒蛋.jpg"
+            }
+        ],
+        "total_count": 2,
+        "sort_order": "asc",
+        "order_by": "waste_rate"
+    }

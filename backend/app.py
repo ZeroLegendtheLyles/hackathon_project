@@ -307,6 +307,99 @@ def add_day():
 
 
 # ==========================================================
+# API：获取所有食物的编号名称和浪费率
+# ==========================================================
+@app.route("/dishes_waste_rates")
+def get_dishes_waste_rates():
+    """
+    获取所有食物的编号名称和浪费率，支持排序
+    
+    查询参数:
+        sort: 排序方式，'asc'（升序）或 'desc'（降序），默认为 'asc'
+        order_by: 排序字段，'waste_rate'（按浪费率）或 'name'（按名称），默认为 'waste_rate'
+    
+    返回格式 (JSON):
+    {
+        "dishes": [
+            {
+                "id": 1,
+                "name": "红烧肉",
+                "waste_rate": 0.25,
+                "image_path": "/images/红烧肉.jpg"
+            },
+            {
+                "id": 2, 
+                "name": "青椒炒蛋",
+                "waste_rate": 0.15,
+                "image_path": "/images/青椒炒蛋.jpg"
+            }
+        ],
+        "total_count": 2,
+        "sort_order": "asc",
+        "order_by": "waste_rate"
+    }
+    """
+    try:
+        # 获取查询参数
+        sort_order = request.args.get('sort', 'asc').lower()
+        order_by = request.args.get('order_by', 'waste_rate').lower()
+        
+        # 验证参数
+        if sort_order not in ['asc', 'desc']:
+            return jsonify({"error": "Invalid sort parameter. Use 'asc' or 'desc'"}), 400
+        
+        if order_by not in ['waste_rate', 'name']:
+            return jsonify({"error": "Invalid order_by parameter. Use 'waste_rate' or 'name'"}), 400
+        
+        # 先计算浪费率
+        try:
+            dishes, waste_rates = compute_waste_rates()
+            
+            # 构建浪费率字典
+            waste_rates_dict = {}
+            for dish, rate in zip(dishes, waste_rates):
+                waste_rates_dict[dish.name] = rate
+        except Exception as e:
+            return jsonify({"error": f"Failed to compute waste rates: {str(e)}"}), 500
+        
+        # 获取所有菜品
+        dishes = Dish.query.all()
+        
+        # 构建结果列表
+        dishes_data = []
+        for dish in dishes:
+            waste_rate = waste_rates_dict.get(dish.name, 0.0)  # 如果没有计算出浪费率，默认为0
+            # 生成图片路径：优先使用菜品名称，如果不存在则使用默认图片
+            image_filename = f"{dish.name}.png"  # 可以根据需要调整扩展名
+            image_path = f"/images/{image_filename}"
+            
+            dishes_data.append({
+                "id": dish.id,
+                "name": dish.name,
+                "waste_rate": round(waste_rate, 4),  # 保留4位小数
+                "image_path": image_path
+            })
+        
+        # 排序
+        if order_by == 'waste_rate':
+            dishes_data.sort(key=lambda x: x['waste_rate'], reverse=(sort_order == 'desc'))
+        else:  # order_by == 'name'
+            dishes_data.sort(key=lambda x: x['name'], reverse=(sort_order == 'desc'))
+        
+        result = {
+            "dishes": dishes_data,
+            "total_count": len(dishes_data),
+            "sort_order": sort_order,
+            "order_by": order_by
+        }
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to get dishes waste rates: {str(e)}"}), 500
+
+
+# ==========================================================
 # 主程序入口
 # ==========================================================
 if __name__ == "__main__":
