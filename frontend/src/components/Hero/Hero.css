@@ -1,0 +1,28 @@
+.hero {
+  background-color: rgb(45, 54, 46);
+  padding: 10px 20px;
+  margin-top: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.hero-text {
+  max-width: 480px;
+}
+
+.hero-title {
+  font-size: 68px;
+  line-height: 1.05;
+  margin: 0 0 16px;
+  font-weight: 800;
+  color: #f9f5e9;
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #d0ccb6;
+}

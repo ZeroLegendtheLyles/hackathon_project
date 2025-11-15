@@ -1,3 +1,17 @@
 .navbar {
-  background-color: red;
+  background-color: rgb(45, 54, 46);
+  margin-top: 10px;
+  display: inline-flex;
+}
+
+.nav-header {
+  color: white;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style-type: none;
+  display: flex;
+  gap: 40px;
+  font-size: 16px;
 }
