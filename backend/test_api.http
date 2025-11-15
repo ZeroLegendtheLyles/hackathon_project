@@ -1,7 +1,7 @@
 ### REST Client 接口测试文件
 ### 使用方法：点击每个请求上方的 "Send Request" 链接即可执行
 
-@baseUrl = http://127.0.0.1:5000
+@baseUrl = http://127.0.0.1:5001
 
 ### 1. 健康检查
 GET {{baseUrl}}/
@@ -168,3 +168,198 @@ GET {{baseUrl}}/day/2025-12-31/top_dish
 
 ### 23. 测试无效日期格式的最大投放菜品
 GET {{baseUrl}}/day/2025/11/15/top_dish
+
+### ============================================
+### 线性规划菜单优化 API 测试
+### ============================================
+
+### 24. 基础优化 - 所有必选字段
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [60, 100],
+  "num_dishes": 3,
+  "dish_constraints": {
+    "1": {"min": 15, "max": 40},
+    "2": {"min": 20, "max": 35},
+    "3": {"min": 20, "max": 35},
+    "4": {"min": 20, "max": 35}
+  }
+}
+
+### 25. 优化3个菜品
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [80, 120],
+  "num_dishes": 3,
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30},
+    "2": {"min": 15, "max": 25},
+    "3": {"min": 12, "max": 28}
+  }
+}
+
+### 26. 带类别要求的优化 - 必须包含蛋白质
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [70, 110],
+  "num_dishes": 2,
+  "dish_constraints": {
+    "1": {"min": 20, "max": 40},
+    "2": {"min": 15, "max": 35},
+    "3": {"min": 20, "max": 35},
+    "4": {"min": 20, "max": 35}
+  },
+  "category_requirements": {
+    "require_protein": true
+  }
+}
+
+### 27. 带类别要求的优化 - 必须包含蛋白质和蔬菜
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [90, 150],
+  "num_dishes": 3,
+  "dish_constraints": {
+    "1": {"min": 20, "max": 40},
+    "2": {"min": 15, "max": 35},
+    "3": {"min": 20, "max": 35},
+    "4": {"min": 20, "max": 35}
+  },
+  "category_requirements": {
+    "require_protein": true,
+    "require_vegetable": true
+  }
+}
+
+### 28. 完整约束的优化 - 4个菜品
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [120, 180],
+  "num_dishes": 4,
+  "dish_constraints": {
+    "1": {"min": 20, "max": 40},
+    "2": {"min": 15, "max": 30},
+    "3": {"min": 10, "max": 25},
+    "4": {"min": 12, "max": 28}
+  },
+  "category_requirements": {
+    "require_protein": true,
+    "require_vegetable": true
+  }
+}
+
+### 29. 指定可用菜品的优化 - 从5个菜品中选2个
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [50, 80],
+  "num_dishes": 2,
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30},
+    "2": {"min": 15, "max": 35},
+    "3": {"min": 8, "max": 25},
+    "4": {"min": 12, "max": 28},
+    "5": {"min": 5, "max": 20}
+  },
+  "available_dishes": [1, 2, 3, 4, 5]
+}
+
+### 30. 测试错误情况 - 缺少总量范围
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "num_dishes": 2,
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30}
+  }
+}
+
+### 31. 测试错误情况 - 缺少菜品数量
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [60, 100],
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30}
+  }
+}
+
+### 32. 测试错误情况 - 缺少菜品约束
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [60, 100],
+  "num_dishes": 2
+}
+
+### 33. 测试错误情况 - 无效的总量范围
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [200, 100],
+  "num_dishes": 2,
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30},
+    "2": {"min": 15, "max": 25}
+  }
+}
+
+### 34. 测试错误情况 - 请求的菜品数量超过有约束的菜品
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [60, 100],
+  "num_dishes": 5,
+  "dish_constraints": {
+    "1": {"min": 10, "max": 30},
+    "2": {"min": 15, "max": 25}
+  }
+}
+
+### 35. 测试约束过紧的情况
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [10, 15],
+  "num_dishes": 3,
+  "dish_constraints": {
+    "1": {"min": 50, "max": 60},
+    "2": {"min": 50, "max": 60},
+    "3": {"min": 50, "max": 60}
+  }
+}
+
+### 36. 最小化浪费的紧致优化
+POST {{baseUrl}}/optimize_menu
+Content-Type: application/json
+
+{
+  "total_quantity_range": [120, 121],
+  "num_dishes": 2,
+  "dish_constraints": {
+    "1": {"min": 40, "max": 80},
+    "2": {"min": 40, "max": 80},
+    "3": {"min": 10, "max": 25},
+    "4": {"min": 12, "max": 28}
+  },
+  "category_requirements": {
+    "require_protein": true
+  }
+}

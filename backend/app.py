@@ -40,9 +40,11 @@ def compute_waste_rates():
     从数据库构建:
         P: (n_days × n_dishes) 投放量矩阵
         M: (n_days × 1) 当天总垃圾量
-    最小二乘求解:
+    约束最小二乘求解:
         P W = M
-        W = 每个菜品的浪费率
+        W = 每个菜品的浪费率 (约束: 0 ≤ W_i ≤ 1)
+    
+    使用numpy的clip函数将浪费率约束到[0,1]区间，确保结果的物理合理性
     """
     # --------------------------------------------------
     # 1. 获取菜品列表并固定顺序
@@ -75,9 +77,13 @@ def compute_waste_rates():
             P[i, j] = s.quantity
 
     # --------------------------------------------------
-    # 4. 最小二乘求解 W
+    # 4. 约束最小二乘求解 W (每个浪费率在0-1之间)
     # --------------------------------------------------
-    W, _, _, _ = np.linalg.lstsq(P, M, rcond=None)
+    # 先进行无约束最小二乘求解
+    W_unconstrained, _, _, _ = np.linalg.lstsq(P, M, rcond=None)
+    
+    # 将结果约束到[0,1]区间内
+    W = np.clip(W_unconstrained, 0, 1)
 
     return dishes, W
 
@@ -673,9 +679,317 @@ def get_top_dish_by_date(date_str):
 
 
 # ==========================================================
+# API：菜单优化规划
+# ==========================================================
+@app.route("/optimize_menu", methods=["POST"])
+def optimize_menu():
+    """
+    使用线性规划优化每日菜品供应量，目标是最小化浪费率
+    
+    请求格式 (JSON):
+    {
+        "total_quantity_range": [80, 120],          // 总出餐量范围(kg) - 必选
+        "num_dishes": 3,                            // 从候选菜品中选择的菜品数量 - 必选
+        "dish_constraints": {                       // 候选池中所有菜品的制作量约束 - 必选
+            "1": {"min": 10, "max": 30},           // 菜品1的约束
+            "2": {"min": 15, "max": 25},           // 菜品2的约束
+            "3": {"min": 12, "max": 28},           // 菜品3的约束
+            "4": {"min": 8, "max": 20},            // 菜品4的约束
+            "5": {"min": 18, "max": 35}            // 菜品5的约束
+        },
+        "category_requirements": {                  // 可选的类别要求
+            "require_staple": true,                 // 是否必须包含主食
+            "require_vegetable": true,              // 是否必须包含蔬菜
+            "require_protein": false,               // 是否必须包含蛋肉类
+            "require_dairy": false                  // 是否必须包含奶制品
+        },
+        "available_dishes": [1, 2, 3, 4, 5]       // 候选菜品ID列表，可选（默认所有菜品）
+    }
+    
+    说明：
+    - available_dishes=[1,2,3,4,5] 定义了候选菜品池（5个菜品）
+    - dish_constraints 必须为这5个菜品都定义约束
+    - num_dishes=3 表示从这5个菜品中选择3个
+    - 算法会枚举所有C(5,3)=10种组合，对每个组合用线性规划优化
+    - 最终返回浪费率最低的最优解
+    
+    返回格式 (JSON):
+    {
+        "success": true,
+        "optimization_result": {
+            "selected_dishes": [
+                {
+                    "dish_id": 1,
+                    "dish_name": "菜品1",
+                    "category": "protein", 
+                    "quantity": 15.5,
+                    "predicted_waste": 3.1,
+                    "image_path": "/images/1.png"
+                }
+            ],
+            "total_quantity": 67.5,
+            "total_predicted_waste": 8.2,
+            "waste_rate": 0.121,
+            "optimization_status": "optimal"
+        }
+    }
+    """
+    try:
+        from scipy.optimize import linprog
+        from itertools import combinations
+        
+        data = request.get_json()
+        
+        # 验证必要字段
+        if not data:
+            return jsonify({"error": "Missing request body"}), 400
+        
+        if "total_quantity_range" not in data:
+            return jsonify({"error": "Missing required field: total_quantity_range"}), 400
+        
+        if "num_dishes" not in data:
+            return jsonify({"error": "Missing required field: num_dishes"}), 400
+            
+        if "dish_constraints" not in data:
+            return jsonify({"error": "Missing required field: dish_constraints"}), 400
+        
+        total_qty_min, total_qty_max = data["total_quantity_range"]
+        num_dishes = data["num_dishes"]
+        dish_constraints = data["dish_constraints"]
+        category_requirements = data.get("category_requirements", {})
+        available_dish_ids = data.get("available_dishes", None)
+        
+        # 验证参数合理性
+        if total_qty_min >= total_qty_max:
+            return jsonify({"error": "Invalid total_quantity_range: min must be less than max"}), 400
+        
+        if num_dishes <= 0:
+            return jsonify({"error": "num_dishes must be positive"}), 400
+        
+        if not dish_constraints:
+            return jsonify({"error": "dish_constraints cannot be empty"}), 400
+        
+        # 获取浪费率数据
+        try:
+            dishes, waste_rates = compute_waste_rates()
+        except Exception as e:
+            return jsonify({"error": f"Failed to compute waste rates: {str(e)}"}), 500
+        
+        # 构建候选菜品池
+        if available_dish_ids:
+            # 使用指定的菜品ID列表
+            candidate_dishes = []
+            candidate_waste_rates = []
+            
+            for dish_id in available_dish_ids:
+                # 找到对应的菜品对象
+                dish_obj = None
+                dish_waste_rate = None
+                for i, dish in enumerate(dishes):
+                    if dish.id == dish_id:
+                        dish_obj = dish
+                        dish_waste_rate = waste_rates[i]
+                        break
+                
+                if dish_obj is None:
+                    return jsonify({"error": f"Dish with ID {dish_id} not found"}), 400
+                
+                candidate_dishes.append(dish_obj)
+                candidate_waste_rates.append(dish_waste_rate)
+        else:
+            # 使用所有菜品作为候选
+            candidate_dishes = dishes
+            candidate_waste_rates = waste_rates
+        
+        # 验证约束定义：候选菜品池中的每个菜品都必须在dish_constraints中定义
+        missing_constraints = []
+        invalid_constraints = []
+        
+        for dish in candidate_dishes:
+            dish_id_str = str(dish.id)
+            if dish_id_str not in dish_constraints:
+                missing_constraints.append(dish_id_str)
+            else:
+                constraint = dish_constraints[dish_id_str]
+                if "min" not in constraint or "max" not in constraint:
+                    invalid_constraints.append(f"Dish {dish_id_str} missing min or max constraint")
+                elif constraint["min"] >= constraint["max"]:
+                    invalid_constraints.append(f"Dish {dish_id_str} invalid constraint: min must be less than max")
+        
+        if missing_constraints:
+            return jsonify({
+                "error": f"Missing dish_constraints for candidate dishes: {missing_constraints}. "
+                        f"All candidate dishes must have constraints defined."
+            }), 400
+        
+        if invalid_constraints:
+            return jsonify({"error": f"Invalid constraints: {invalid_constraints}"}), 400
+        
+        # 检查候选菜品数量是否足够
+        if len(candidate_dishes) < num_dishes:
+            return jsonify({
+                "error": f"Not enough candidate dishes. Need {num_dishes}, have {len(candidate_dishes)} candidate dishes"
+            }), 400
+        
+        # 检查类别要求的函数
+        def check_category_requirements_func(dishes_list):
+            if not category_requirements:
+                return True
+            
+            categories_present = set(dish.category for dish in dishes_list if dish.category)
+            
+            if category_requirements.get("require_staple", False) and "staple" not in categories_present:
+                return False
+            if category_requirements.get("require_vegetable", False) and "vegetable" not in categories_present:
+                return False
+            if category_requirements.get("require_protein", False) and "protein" not in categories_present:
+                return False
+            if category_requirements.get("require_dairy", False) and "dairy" not in categories_present:
+                return False
+            
+            return True
+        
+        # 枚举所有可能的菜品组合（从候选菜品中选择）
+        best_solution = None
+        best_waste_rate = float('inf')
+        best_combination = None
+        
+        # 尝试所有可能的菜品组合
+        for dish_combination in combinations(candidate_dishes, num_dishes):
+            # 检查类别要求
+            if not check_category_requirements_func(dish_combination):
+                continue
+            
+            # 为当前组合设置线性规划
+            n_selected = len(dish_combination)
+            selected_waste_rates = []
+            
+            for dish in dish_combination:
+                # 找到对应的浪费率
+                dish_idx = candidate_dishes.index(dish)
+                selected_waste_rates.append(candidate_waste_rates[dish_idx])
+            
+            # 线性规划设置
+            # 目标函数：最小化总浪费量
+            c = selected_waste_rates
+            
+            # 不等式约束 A_ub * x <= b_ub
+            A_ub = []
+            b_ub = []
+            
+            # 每个菜品的最大量约束
+            for i, dish in enumerate(dish_combination):
+                dish_id_str = str(dish.id)
+                constraint = dish_constraints[dish_id_str]
+                max_qty = constraint["max"]
+                
+                constraint_row = [0] * n_selected
+                constraint_row[i] = 1
+                A_ub.append(constraint_row)
+                b_ub.append(max_qty)
+            
+            # 总量上限约束
+            A_ub.append([1] * n_selected)
+            b_ub.append(total_qty_max)
+            
+            # 总量下限约束（转换为不等式）
+            A_ub.append([-1] * n_selected)
+            b_ub.append(-total_qty_min)
+            
+            # 变量边界 (下界, 上界)
+            bounds = []
+            for dish in dish_combination:
+                dish_id_str = str(dish.id)
+                constraint = dish_constraints[dish_id_str]
+                min_qty = constraint["min"]
+                bounds.append((min_qty, None))  # 上界通过不等式约束处理
+            
+            # 求解线性规划
+            try:
+                result = linprog(
+                    c=c,
+                    A_ub=A_ub,
+                    b_ub=b_ub,
+                    bounds=bounds,
+                    method='highs'
+                )
+                
+                if result.success and result.x is not None:
+                    quantities = result.x
+                    total_quantity = sum(quantities)
+                    
+                    # 验证解是否满足所有约束
+                    valid_solution = True
+                    
+                    # 检查总量约束
+                    if total_quantity < total_qty_min or total_quantity > total_qty_max:
+                        valid_solution = False
+                    
+                    # 检查每个菜品的约束
+                    for i, dish in enumerate(dish_combination):
+                        dish_id_str = str(dish.id)
+                        constraint = dish_constraints[dish_id_str]
+                        if quantities[i] < constraint["min"] or quantities[i] > constraint["max"]:
+                            valid_solution = False
+                            break
+                    
+                    if valid_solution:
+                        total_waste = sum(quantities[i] * selected_waste_rates[i] for i in range(n_selected))
+                        waste_rate = total_waste / total_quantity if total_quantity > 0 else 0
+                        
+                        if waste_rate < best_waste_rate:
+                            best_waste_rate = waste_rate
+                            best_combination = dish_combination
+                            best_solution = {
+                                "quantities": quantities,
+                                "total_quantity": total_quantity,
+                                "total_waste": total_waste,
+                                "waste_rate": waste_rate,
+                                "status": result.message
+                            }
+                            
+            except Exception as e:
+                # 这个组合无解，继续尝试下一个
+                continue
+        
+        if best_solution is None:
+            return jsonify({"error": "No valid solution found. Constraints may be too restrictive."}), 400
+        
+        # 构建响应
+        selected_dishes_result = []
+        for i, dish in enumerate(best_combination):
+            dish_idx = candidate_dishes.index(dish)
+            image_path = dish.image_path if dish.image_path else f"/images/{dish.name}.png"
+            selected_dishes_result.append({
+                "dish_id": dish.id,
+                "dish_name": dish.name,
+                "category": dish.category or "unknown",
+                "quantity": round(best_solution["quantities"][i], 2),
+                "predicted_waste": round(best_solution["quantities"][i] * candidate_waste_rates[dish_idx], 2),
+                "image_path": image_path
+            })
+        
+        result = {
+            "success": True,
+            "optimization_result": {
+                "selected_dishes": selected_dishes_result,
+                "total_quantity": round(best_solution["total_quantity"], 2),
+                "total_predicted_waste": round(best_solution["total_waste"], 2),
+                "waste_rate": round(best_solution["waste_rate"], 4),
+                "optimization_status": "optimal"
+            }
+        }
+        
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({"error": f"Failed to optimize menu: {str(e)}"}), 500
+
+
+# ==========================================================
 # 主程序入口
 # ==========================================================
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5001)
