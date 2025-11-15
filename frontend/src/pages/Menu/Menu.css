@@ -1,0 +1,43 @@
+.menu {
+    padding: 20px;
+}
+
+.menu-title {
+  text-align: center;
+  margin-top: 60px;
+  margin-bottom: 40px;
+  letter-spacing: 0.35em;
+  font-size: 40px;
+}
+
+.menu-content {
+  display: grid;
+  align-items: center;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.menu-card {
+  background: linear-gradient(
+    180deg,
+    rgba(76, 87, 76, 0.795),
+    rgba(141, 161, 138, 0)
+  );
+  border-radius: 10px;
+  padding: 18px 18px 20px;
+  text-align: center;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.menu-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 18px;
+  margin-bottom: 16px;
+}
