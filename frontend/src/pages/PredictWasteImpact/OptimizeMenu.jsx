@@ -264,10 +264,7 @@ const OptimizeMenu = () => {
                   <li key={d.dish_id} className="optimize-result-item">
                     <div className="optimize-result-main">
                       <div className="optimize-result-img-wrapper">
-                        <img
-                          src={`${API_URL}${d.image_path}`}
-                          alt={d.dish_name}
-                        />
+                        <img src={`${d.image_path}`} alt={d.dish_name} />
                       </div>
                       <div className="optimize-result-text">
                         <span className="optimize-result-name">
