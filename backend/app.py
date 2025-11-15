@@ -3,11 +3,16 @@ import numpy as np
 from datetime import datetime
 import os
 import json
+from flask_cors import CORS
 
 # ==========================================================
 # 初始化 Flask 与 SQLAlchemy
 # ==========================================================
 app = Flask(__name__)
+CORS(
+    app,
+    resources={r"/*": {"origins": "http://localhost:5173"}}
+)
 # 确保数据库总是使用 backend 目录下的 hackathon_project_test.db
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, "hackathon_project_test.db")
