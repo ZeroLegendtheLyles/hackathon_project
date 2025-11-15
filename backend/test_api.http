@@ -98,3 +98,69 @@ GET {{baseUrl}}/dishes_waste_rates?order_by=name&sort=asc
 
 ### 13. 获取所有食物的浪费率（按名称降序）
 GET {{baseUrl}}/dishes_waste_rates?order_by=name&sort=desc
+
+### 14. 预测调整菜品投放量的影响（减少到80%）
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "1",
+  "adjustment_percentage": 80
+}
+
+### 15. 预测调整菜品投放量的影响（增加到120%）
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "2",
+  "adjustment_percentage": 120
+}
+
+### 16. 预测完全停止某个菜品投放的影响
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "3",
+  "adjustment_percentage": 0
+}
+
+### 17. 预测大幅增加某个菜品投放的影响
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "1",
+  "adjustment_percentage": 150
+}
+
+### 18. 测试预测错误情况 - 不存在的菜品
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "不存在的菜品",
+  "adjustment_percentage": 80
+}
+
+### 19. 测试预测错误情况 - 无效的调整百分比
+POST {{baseUrl}}/predict_waste_impact
+Content-Type: application/json
+
+{
+  "dish_name": "1",
+  "adjustment_percentage": 250
+}
+
+### 20. 获取某一天投放量最多的菜品
+GET {{baseUrl}}/day/2025-11-13/top_dish
+
+### 21. 获取另一天投放量最多的菜品
+GET {{baseUrl}}/day/2025-11-22/top_dish
+
+### 22. 测试获取不存在日期的最大投放菜品
+GET {{baseUrl}}/day/2025-12-31/top_dish
+
+### 23. 测试无效日期格式的最大投放菜品
+GET {{baseUrl}}/day/2025/11/15/top_dish
