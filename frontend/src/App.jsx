@@ -6,6 +6,7 @@ import Menu from "./pages/Menu/Menu";
 import About from "./pages/About/About";
 import Metrics from "./pages/Metrics/Metrics";
 import Admin from "./pages/Admin/Admin";
+import TrashOfToday from "./pages/TrashOfToday/TrashOfToday";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/metrics" element={<Metrics />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/metrics" element={<Metrics />} />
+        <Route path="/trash" element={<TrashOfToday />} />
       </Routes>
     </>
   );

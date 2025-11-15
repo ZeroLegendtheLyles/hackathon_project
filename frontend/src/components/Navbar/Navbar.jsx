@@ -34,6 +34,11 @@ const Navbar = () => {
             Metrics
           </NavLink>
         </li>
+        <li>
+          <NavLink to="/trash" className="nav-header">
+            Trash of today
+          </NavLink>
+        </li>
       </ul>
     </nav>
   );
