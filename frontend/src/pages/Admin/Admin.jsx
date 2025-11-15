@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import axios from "axios";
 import "./Admin.css";
 
-const API_URL = "http://127.0.0.1:5000";
+const API_URL = "http://127.0.0.1:5001";
 
 const Admin = () => {
   const [date, setDate] = useState("");
   const [totalWaste, setTotalWaste] = useState("");
-  const [servings, setServings] = useState([{ dish_name: "", quantity: "" }]);
+  const [servings, setServings] = useState([
+    { dish_name: "", quantity: "", image_path: "" },
+  ]);
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,12 +20,16 @@ const Admin = () => {
   };
 
   const addServingRow = () => {
-    setServings([...servings, { dish_name: "", quantity: "" }]);
+    setServings([...servings, { dish_name: "", quantity: "", image_path: "" }]);
   };
 
   const removeServingRow = (index) => {
     const updated = servings.filter((_, i) => i !== index);
-    setServings(updated.length ? updated : [{ dish_name: "", quantity: "" }]);
+    setServings(
+      updated.length
+        ? updated
+        : [{ dish_name: "", quantity: "", image_path: "" }]
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -37,17 +43,23 @@ const Admin = () => {
         total_waste: parseFloat(totalWaste),
         servings: servings
           .filter((s) => s.dish_name.trim() !== "")
-          .map((s) => ({
-            dish_name: s.dish_name.trim(),
-            quantity: parseFloat(s.quantity),
-          })),
+          .map((s) => {
+            const base = {
+              dish_name: s.dish_name.trim(),
+              quantity: parseFloat(s.quantity),
+            };
+            if (s.image_path && s.image_path.trim() !== "") {
+              base.image_path = s.image_path.trim();
+            }
+            return base;
+          }),
       };
 
       const res = await axios.post(`${API_URL}/add_day`, payload);
       setStatus({ type: "success", message: res.data.message });
       setDate("");
       setTotalWaste("");
-      setServings([{ dish_name: "", quantity: "" }]);
+      setServings([{ dish_name: "", quantity: "", image_path: "" }]);
     } catch (err) {
       const message =
         err.response?.data?.error || "Failed to add day. Check the data.";
@@ -90,6 +102,7 @@ const Admin = () => {
             <div className="admin-servings-header">
               <span>Dish name</span>
               <span>Quantity served</span>
+              <span>Image path</span>
               <span />
             </div>
 
@@ -113,6 +126,14 @@ const Admin = () => {
                     handleServingChange(index, "quantity", e.target.value)
                   }
                   required
+                />
+                <input
+                  type="text"
+                  placeholder="/images/pizza.png"
+                  value={serving.image_path || ""}
+                  onChange={(e) =>
+                    handleServingChange(index, "image_path", e.target.value)
+                  }
                 />
                 <button
                   type="button"

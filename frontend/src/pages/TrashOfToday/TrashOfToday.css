@@ -1,0 +1,155 @@
+.trash-today {
+  background-color: #111a19;
+  min-height: 100vh;
+  padding: 80px 160px;
+  color: #fbfada;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.trash-today-title {
+  font-size: 36px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: center;
+}
+
+.trash-today-placeholder {
+  font-size: 14px;
+  color: rgba(251, 250, 218, 0.75);
+}
+
+.trash-today-scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  min-height: 180px;
+}
+
+.trash-today-dish-card {
+  background-color: rgba(5, 10, 9, 0.75);
+  border-radius: 20px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(251, 250, 218, 0.1);
+}
+
+.trash-today-dish-image-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: #111a19;
+}
+
+.trash-today-dish-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trash-today-dish-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trash-today-dish-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.trash-today-dish-meta {
+  font-size: 13px;
+  color: rgba(251, 250, 218, 0.75);
+}
+
+.trash-today-bin {
+  position: relative;
+  justify-self: center;
+  width: 650px;
+  height: 950px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.trash-today-bin img {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: shake 0.4s infinite;
+}
+
+.trash-today-floating {
+  position: absolute;
+  left: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: trash-fly 3s ease-in-out infinite;
+  z-index: 10;
+}
+
+.trash-today-floating-img {
+  width: 300px;
+  height: 300px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.trash-today-caption {
+  font-size: 13px;
+  color: rgba(251, 250, 218, 0.75);
+}
+
+.dishContainer {
+  display: flex;
+  flex-direction: column;
+}
+@keyframes trash-fly {
+  0% {
+    transform: translate(-10%, -40%) scale(1);
+    opacity: 0;
+  }
+  20% {
+    transform: translate(0, -50%) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(85%, -30%) scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(95%, 10%) scale(0.85);
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-3px, 0) rotate(-2deg);
+  }
+  40% {
+    transform: translate(3px, 0) rotate(2deg);
+  }
+  60% {
+    transform: translate(-3px, 0) rotate(-2deg);
+  }
+  80% {
+    transform: translate(3px, 0) rotate(2deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
